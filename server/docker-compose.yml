@@ -1,0 +1,35 @@
+services:
+
+  api:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    image: nsci:latest
+    container_name: ns-api
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+
+  redis:
+    image: redis:7 
+    container_name: ns-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  worker:
+    build: .
+    command: celery -A worker worker --loglevel=info
+    container_name: ns-worker
+    privileged: true
+    volumes:
+      - /run/containerd:/run/containerd
+      - /var/lib/containerd:/var/lib/containerd
+    depends_on:
+      - redis
+
+volumes:
+  redis_data: {}
+  pgdata:
