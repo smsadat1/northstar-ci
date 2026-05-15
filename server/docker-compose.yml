@@ -19,6 +19,13 @@ services:
     volumes:
       - redis_data:/data
 
+  beat:
+    build: .
+    command: celery -A imgmgr beat --loglevel=info
+    container_name: ns-beat
+    depends_on:
+      - redis
+
   worker:
     build: .
     command: celery -A worker worker --loglevel=info

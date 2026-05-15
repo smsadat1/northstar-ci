@@ -7,23 +7,30 @@ from pydantic import BaseModel
 from cache import async_r
 from logger import log_event
 from dispatcher import generate_job_id
-from runner import ns_runner
+from provisioner import ns_provisioner
 
 
 app = FastAPI()
 
-class Job(BaseModel):
+class JobSpec(BaseModel):
     command: str
+    image: str
+    env: dict[str, str]
 
 @app.post('/jobs/run')
-def send_job(job: Job):
+def send_job(jobspec: JobSpec):
 
     job_id = generate_job_id()
-    job_data = {"job_id": job_id, "command": job.command}
-    ns_runner.delay(job_data=job_data)
+    job_data = {
+        "job_id": job_id, "command": jobspec.command,
+        "image": jobspec.image, "env": jobspec.env,
+    }
+
+    log_event(job_id=job_id, message=f"[nsserver] Job ID: {job_id}")
+    ns_provisioner(job_spec=job_data)
 
     log_event(job_id=job_id, message="[nsserver] queued job...")
-    job_status = {"job_id": job_id, "message": "[nsserver] queued job..."}
+    job_status = {"job_id": job_id}
     return job_status
     
     

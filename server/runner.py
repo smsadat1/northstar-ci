@@ -2,7 +2,7 @@ import json
 import time
 import subprocess
 
-
+from cmdbuilder import build_nerdctl_cmd
 from logger import log_event
 from worker import celery_app
 
@@ -11,25 +11,17 @@ NS_CI_JOB_TIMEOUT = 300
 MAX_LINES = 5000
 
 
-@celery_app.task
-def ns_runner(job_data):
+@celery_app.task(bind=True, max_retries=5)
+def ns_runner(self, runner_id, job_spec, retries: bool):
    
-    job_id = job_data['job_id']
+    if retries:
+        raise self.retry(countdown=10)
 
-    log_event(job_id, "[nsrunner] Initializing sandbox environment...")
+    job_id = job_spec['job_id']
 
-    # construct nerdctl command with all CI restrictions
-    cmd = [
-        "/usr/local/bin/nerdctl", "run", "--rm",
-        "--runtime", "runsc",           # Use gVisor
-        "--cpus", "1",                  # CPU Limit
-        "--memory", "1024m",            # RAM Limit
-        "--pids-limit", "100",          # Fork limit
-        "--net", "none",                # Network isolation
-        "--read-only",                  # Read-only root FS
-        "alpine:latest", 
-        "/bin/sh", "-c", job_data['command']
-    ]
+    log_event(job_id, f"[nsrunner:{runner_id}] Initializing sandbox environment...")
+
+    cmd = build_nerdctl_cmd(runner_id, job_spec)
 
     proc = subprocess.Popen(
         cmd, 
@@ -38,7 +30,7 @@ def ns_runner(job_data):
         text=True, bufsize=1,
     )
 
-    log_event(job_id, "[nsrunner] Running 'nerdctl' (includes pull & exec)...")
+    log_event(job_id, f"[nsrunner:{runner_id}] Starting container tasks...")
         
     # iterate over output line by line
     start_time = time.time()
@@ -51,7 +43,7 @@ def ns_runner(job_data):
                 line_count += 1
                 if line_count > MAX_LINES:
                     proc.kill()
-                    log_event(job_id, "[nsrunner] ERROR: Too many log lines. Terminating.")
+                    log_event(job_id, f"[nsrunner:{runner_id}] ERROR: Too many log lines. Terminating.")
                     break
                 log_event(job_id, line.strip())
 
@@ -62,7 +54,7 @@ def ns_runner(job_data):
             # Kill process if it exceeds time limit
             if time.time() - start_time > NS_CI_JOB_TIMEOUT:
                 proc.kill()
-                log_event(job_id, "[nsrunner] TIMEOUT: Process forcibly terminated.")
+                log_event(job_id, f"[nsrunner:{runner_id}] TIMEOUT: Process forcibly terminated.")
                 break
 
     finally:
@@ -70,4 +62,5 @@ def ns_runner(job_data):
             proc.stdout.close()
     return_code = proc.wait()
 
-    log_event(job_id, f"[nsrunner] finished (exit code {return_code})")
+    log_event(job_id, f"[nsrunner:{runner_id}] finished (exit code {return_code})")
+    log_event(job_id, f"END")
