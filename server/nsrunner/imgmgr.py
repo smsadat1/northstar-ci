@@ -1,7 +1,7 @@
 # manages and caches images 
 import subprocess
 
-from worker import celery_app
+from shared.worker import celery_app
 
 ALLOWED_IMAGES = {
     "python": "python:3.11-slim",

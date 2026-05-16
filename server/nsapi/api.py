@@ -1,16 +1,18 @@
-import asyncio
 import json
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, File, Form, UploadFile, HTTPException
 from pydantic import BaseModel
 
-from cache import async_r
-from logger import log_event
+from shared.cache import async_r
+from shared.config import message_broker
+from shared.logger import log_event
+from shared.storage import StorageManager
 from dispatcher import generate_job_id
-from provisioner import ns_provisioner
 
 
 app = FastAPI()
+storage = StorageManager()
+
 
 class JobSpec(BaseModel):
     command: str
@@ -18,16 +20,35 @@ class JobSpec(BaseModel):
     env: dict[str, str]
 
 @app.post('/jobs/run')
-def send_job(jobspec: JobSpec):
+def send_job(
+    job_spec_str: str = Form(...),         
+    file: UploadFile = File(None)
+):
+
+    try:
+        job_data = json.loads(job_spec_str)
+        jobspec = JobSpec(**job_data)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid job_spec JSON format structure.")
 
     job_id = generate_job_id()
+    log_event(job_id=job_id, message=f"[nsserver] Job ID: {job_id}")
+
     job_data = {
-        "job_id": job_id, "command": jobspec.command,
-        "image": jobspec.image, "env": jobspec.env,
+        "job_id": job_id, 
+        "runner_id": "",
+        "command": jobspec.command,
+        "image": jobspec.image, 
+        "env": jobspec.env,
+        "status": "PENDING", 
+        "has_file": bool(file),
     }
 
-    log_event(job_id=job_id, message=f"[nsserver] Job ID: {job_id}")
-    ns_provisioner(job_spec=job_data)
+    if file: 
+        storage.upload_file(file, f"{job_id}.tar.gz")
+        log_event(job_id=job_id, message="[nsserver] Transferring files")
+        
+    message_broker.push_job(queue_name="job_queue", payload=job_data)
 
     log_event(job_id=job_id, message="[nsserver] queued job...")
     job_status = {"job_id": job_id}

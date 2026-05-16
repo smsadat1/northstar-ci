@@ -1,27 +1,30 @@
-import json
+import os
+import shutil
 import time
 import subprocess
 
-from cmdbuilder import build_nerdctl_cmd
-from logger import log_event
-from worker import celery_app
+from .cmdbuilder import build_nerdctl_cmd
+from shared.logger import log_event
+from shared.worker import celery_app
 
 
 NS_CI_JOB_TIMEOUT = 300
 MAX_LINES = 5000
 
 
-@celery_app.task(bind=True, max_retries=5)
+@celery_app.task(name="tasks.nsrunner", bind=True, max_retries=5)
 def ns_runner(self, runner_id, job_spec, retries: bool):
    
     if retries:
         raise self.retry(countdown=10)
 
     job_id = job_spec['job_id']
+    # a dedicated directory for job's source code
+    workspace_dir = f"/tmp/workspaces/{job_id}"
 
     log_event(job_id, f"[nsrunner:{runner_id}] Initializing sandbox environment...")
 
-    cmd = build_nerdctl_cmd(runner_id, job_spec)
+    cmd = build_nerdctl_cmd(runner_id, job_spec, workspace_dir=workspace_dir)
 
     proc = subprocess.Popen(
         cmd, 
@@ -45,7 +48,7 @@ def ns_runner(self, runner_id, job_spec, retries: bool):
                     proc.kill()
                     log_event(job_id, f"[nsrunner:{runner_id}] ERROR: Too many log lines. Terminating.")
                     break
-                log_event(job_id, line.strip())
+                log_event(job_id, line.strip(), exec_logs=True)
 
             # Check if process ended
             if line == "" and proc.poll() is not None:
@@ -61,6 +64,10 @@ def ns_runner(self, runner_id, job_spec, retries: bool):
         if proc.stdout:
             proc.stdout.close()
     return_code = proc.wait()
+
+    log_event(job_id, f"[nsrunner:{runner_id}] Cleaning artifacts")
+    if os.path.exists(workspace_dir):
+        shutil.rmtree(workspace_dir)
 
     log_event(job_id, f"[nsrunner:{runner_id}] finished (exit code {return_code})")
     log_event(job_id, f"END")

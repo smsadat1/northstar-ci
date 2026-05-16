@@ -10,7 +10,7 @@ celery_app = Celery(
     backend="redis://redis:6379/0",
 )
 
-celery_app.conf.update( imports=['runner'] )
+celery_app.conf.update( imports=['nsrunner.runner'] )
 
 celery_app.conf.beatschedule = {
     'prewarm-images-every-5-min': {
