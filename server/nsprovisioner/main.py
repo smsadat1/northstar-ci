@@ -1,10 +1,9 @@
 # manager runner
-import json
 import time
 
-from shared.cache import sync_r
-from shared.config import NS_RedisProvider
-from shared.discovery import get_healthy_runner
+from discovery import get_healthy_runner
+
+from shared.config import NS_RedisProvider, sync_r
 from shared.logger import log_event
 from shared.worker import celery_app
 
@@ -54,7 +53,7 @@ def ns_provisioner():
         )
 
         log_event(job_id=job_id, message=f"[nsprovisioner] Allocated Runner ID: {runner_id} | IP: {runner_ip} | Queue: {runner_queue}")
-        celery_app.send_task('tasks.nsrunner', args=[runner['id'], job_spec, False], queue=runner_queue)
+        celery_app.send_task('tasks.nsrunner', args=[job_spec, runner['id'], False], queue=runner_queue)
 
 if __name__  == "__main__":
     print("Initializing nsprovisioner")

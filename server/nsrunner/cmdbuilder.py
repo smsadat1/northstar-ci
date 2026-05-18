@@ -1,8 +1,8 @@
 # builds the cmd
 import os 
-import shutil
-import tarfile
+import shlex
 
+from .utils import download_and_extract_workspace
 from shared.logger import log_event
 from shared.storage import StorageManager
 
@@ -11,6 +11,7 @@ storage = StorageManager()
 
 def build_nerdctl_cmd(runner_id, job_spec, workspace_dir):
     
+    print('Building command for nerdctl')
     job_id = job_spec['job_id']
 
     cmd = [
@@ -32,36 +33,21 @@ def build_nerdctl_cmd(runner_id, job_spec, workspace_dir):
         "--read-only",
     ])
 
+    print(f"[nsrunner DEBUG] job_spec payload keys: {list(job_spec.keys())}")
+    print(f"[nsrunner DEBUG] value of has_file: {job_spec.get('has_file')} (Type: {type(job_spec.get('has_file'))})")
+
     if job_spec.get('has_file'):
         log_event(job_id, "[nsrunner] downloading workspace from object storage...")
         
-        local_zip = f"/tmp/{job_id}.tar.gz"
-        success = storage.download_file(f"{job_id}.tar.gz", local_zip)
-        
-        if not success:
-            log_event(job_id, "[nsrunner] CRITICAL: Workspace download failed! Halting execution")
-            return
+        download_and_extract_workspace(storage_client=storage, job_id=job_id, workspace_dir=workspace_dir)
 
-        # safely extract the archive on the host machine
-        os.makedirs(workspace_dir, exist_ok=True)
-        try:
-            with tarfile.open(local_zip, "r:gz") as tar:
-                tar.extractall(path=workspace_dir)
-            log_event(job_id, "[nsrunner] Workspace unpacked successfully.")
-        except Exception as e:
-            log_event(job_id, f"[nsrunner] CRITICAL: Extraction failed: {str(e)}")
-            return
-        finally:
-            # Clean up the raw zip immediately to save space
-            if os.path.exists(local_zip):
-                os.remove(local_zip)
-
+        log_event(job_id, f"[nsrunner]  Files extracted: {os.listdir(workspace_dir)}")
         # mount the directory and set it as the working directory inside the container
         # Note: Even with --read-only rootfs, mounted volumes remain writable unless specified as :ro
         cmd.extend(["-v", f"{workspace_dir}:/workspace", "-w", "/workspace"])
 
     cmd.append(job_spec["image"])
-    cmd.extend(["/bin/sh", "-c",  job_spec["command"]])
+    cmd.extend([*shlex.split(job_spec.get('command'))])
 
     return cmd
         

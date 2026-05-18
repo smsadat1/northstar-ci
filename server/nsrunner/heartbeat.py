@@ -2,7 +2,8 @@ import time
 import os
 import psutil
 import json
-from shared.cache import sync_r
+
+from shared.config import sync_r
 
 RUNNER_ID = os.getenv("RUNNER_ID", "runner-123")
 RUNNER_IP = os.getenv("RUNNER_IP", "127.0.0.1")

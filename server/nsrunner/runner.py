@@ -1,9 +1,11 @@
 import os
+import json
 import shutil
 import time
 import subprocess
 
 from .cmdbuilder import build_nerdctl_cmd
+from shared.config import message_broker
 from shared.logger import log_event
 from shared.worker import celery_app
 
@@ -13,13 +15,19 @@ MAX_LINES = 5000
 
 
 @celery_app.task(name="tasks.nsrunner", bind=True, max_retries=5)
-def ns_runner(self, runner_id, job_spec, retries: bool):
+def ns_runner(self, job_spec, runner_id, retries: bool):
    
     if retries:
         raise self.retry(countdown=10)
 
+    if not job_spec:
+        print('Job spec not found')
+        return
+    
+    if isinstance(job_spec, str):
+        job_spec = json.loads(job_spec)
+        
     job_id = job_spec['job_id']
-    # a dedicated directory for job's source code
     workspace_dir = f"/tmp/workspaces/{job_id}"
 
     log_event(job_id, f"[nsrunner:{runner_id}] Initializing sandbox environment...")
