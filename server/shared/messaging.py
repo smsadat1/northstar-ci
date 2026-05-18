@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 import json
 import redis
 
+from .schema import JobSpecSchema
 
 class NS_MessageProvider(ABC):
 
@@ -33,7 +34,7 @@ class NS_RedisProvider(NS_MessageProvider):
         # Pub/Sub for real-time log streaming
         self.r.publish(f"logs:{job_id}", message)
 
-    def push_job(self, queue_name, payload):
+    def push_job(self, queue_name, payload: dict[str, str]):
         # LPUSH for job queueing
         self.r.lpush(queue_name, json.dumps(payload))
 

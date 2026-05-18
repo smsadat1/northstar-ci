@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from .cache import sync_r
+from .config import sync_r
 
 
 def log_event(job_id, message, exec_logs: bool = False):

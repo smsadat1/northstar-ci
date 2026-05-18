@@ -10,7 +10,7 @@ class StorageManager:
         self.endpoint = os.getenv("S3_ENDPOINT", "http://storage:9000")
         self.access_key = os.getenv("S3_ACCESS_KEY", "minioadmin")
         self.secret_key = os.getenv("S3_SECRET_KEY", "minioadminpassword")
-        self.bucket_name = os.getenv("S3_BUCKET", "workspaces")
+        self.bucket_name = os.getenv("S3_BUCKET", "ns-storage-bucket")
 
         self.client = boto3.client(
             's3',
@@ -31,6 +31,12 @@ class StorageManager:
 
     def download_file(self, object_name, destination):
         """Downloads a file from MinIO/S3 to a local path"""
+
+        print("\n" + "="*50)
+        print(f"[STORAGE DEBUG] Target Endpoint:  {self.endpoint}")
+        print(f"[STORAGE DEBUG] Target Bucket:    {self.bucket_name}")
+        print(f"[STORAGE DEBUG] Target Object Key: {object_name}")
+        print("="*50 + "\n")
         try:
             self.client.download_file(self.bucket_name, object_name, destination)
             return True
