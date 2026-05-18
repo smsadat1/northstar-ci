@@ -19,6 +19,8 @@ services:
     container_name: ns-prv
     env_file:
       - .env
+    depends_on:
+      - redis
 
   runner:
     build: 
@@ -30,6 +32,7 @@ services:
     volumes:
       - /var/lib/containerd:/var/lib/containerd
       - /run/containerd:/run/containerd
+      - /tmp/workspaces:/tmp/workspaces
     environment:
       - RUNNER_ID=runner-123
       - PYTHONPATH=/app
