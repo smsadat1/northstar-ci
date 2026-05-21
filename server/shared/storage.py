@@ -1,16 +1,26 @@
 # shared/storage.py
+from dotenv import load_dotenv
+
 import boto3
 import os
 from botocore.exceptions import ClientError
 
+load_dotenv()
+
+IS_LOCAL = os.getenv('ENV', 'local') == 'local'
+MINIO_ENDPOINT = os.getenv("MINIO_ENDPOINT", "MINIO_ENDPOINT")
+MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY", "MINIO_ACCESS_KEY")
+MINIO_SECRET_KEY= os.getenv("MINIO_SECRET_KEY", "MINIO_SECRET_KEY")
+MINIO_BUCKET = os.getenv("MINIO_BUCKET", "MINIO_BUCKET")
+MINIO_REGION_NAME = os.getenv("MINIO_REGION_NAME", "MINIO_REGION_NAME")
 
 class StorageManager:
     def __init__(self):
-        # These would come from your .env file
-        self.endpoint = os.getenv("S3_ENDPOINT", "http://storage:9000")
-        self.access_key = os.getenv("S3_ACCESS_KEY", "minioadmin")
-        self.secret_key = os.getenv("S3_SECRET_KEY", "minioadminpassword")
-        self.bucket_name = os.getenv("S3_BUCKET", "ns-storage-bucket")
+        # These would come from your .env file 
+        self.endpoint = MINIO_ENDPOINT
+        self.access_key = MINIO_ACCESS_KEY
+        self.secret_key = MINIO_SECRET_KEY
+        self.bucket_name = MINIO_BUCKET
 
         self.client = boto3.client(
             's3',
