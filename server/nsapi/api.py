@@ -1,84 +1,81 @@
-import json
+import asyncio
+import os
+from dotenv import load_dotenv
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, File, Form, UploadFile, HTTPException
-from pydantic import BaseModel
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 
 from shared.config import message_broker, async_r
 from shared.logger import log_event
-from shared.schema import JobSpecSchema
 from shared.storage import StorageManager
 
 from s3client import generate_presigned_s3_url
-from utils import generate_job_id
+from utils import ns_job_specs
+from validator import NSAPIContract
 
 
+load_dotenv()
 app = FastAPI()
 storage = StorageManager()
 
-class JobSpec(BaseModel):
-    command: str
-    image: str
-    has_file: bool
-    env: dict[str, str]
+MINIO_BUCKET = os.getenv("MINIO_BUCKET", "MINIO_BUCKET")
 
 @app.post('/jobs/run')
-def send_job(job_spec_str: str = Form(...)):
+def send_job(job_metadata: NSAPIContract):
     try:
-        job_data = json.loads(job_spec_str)
-        jobspec = JobSpec(**job_data)
+        jobspec = ns_job_specs(job_metadata)
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid job_spec JSON format structure.")
 
-    job_id = generate_job_id()
-    log_event(job_id=job_id, message=f"[nsserver] Job ID: {job_id}")
-
-    job_data = JobSpecSchema(
-        job_id=job_id,
-        runner_id='',
-        command=jobspec.command,
-        has_file=jobspec.has_file,
-        image = jobspec.image,
-        env = jobspec.env,
-        status = "PENDING",
-        src_url='',
-    )
+    upload_url = None
+    log_event(job_id=jobspec.job_id, message=f"[nsserver] Job ID: {jobspec.job_id}")
 
     if jobspec.has_file:
-        bucket = "ns-storage-bucket"
-        object_key = f"workspaces/{job_id}.tar.gz"
+        object_key = f"workspaces/{jobspec.job_id}.tar.gz"
 
         upload_url = generate_presigned_s3_url(
-            bucket_name=bucket, object_name=object_key, expiration=300
+            job_id=jobspec.job_id,
+            bucket_name=MINIO_BUCKET, object_name=object_key, expiration=300
         )
+
+        print(f'URL backend wants for s3: {upload_url}')
 
         if not upload_url:
             raise HTTPException(status_code=500, detail="Failed to initialize storage link")
     
-    message_broker.push_job(queue_name="job_queue", payload=job_data.model_dump())
-    log_event(job_id=job_id, message="[nsserver] Queued job...")
+    message_broker.push_job(queue_name="job_queue", payload=jobspec.model_dump())
+    log_event(job_id=jobspec.job_id, message="[nsserver] Queued job...")
 
-    return {"job_id": job_id, "s3_upload_url": upload_url}
+    return {"job_id": jobspec.job_id, "s3_upload_url": upload_url}
     
     
 @app.websocket("/ws/logs/{job_id}")
 async def websocket_logs(websocket: WebSocket, job_id: str):
     await websocket.accept()
 
-    history = await async_r.lrange(f"logs:{job_id}", 0, -1)
-    for line in history:
-        await websocket.send_text(line)
-
     pubsub = async_r.pubsub()
     await pubsub.subscribe(f"channel:{job_id}")
 
-    async with async_r.pubsub() as pubsub:
-        await pubsub.subscribe(f"channel:{job_id}")
-        try:
-            async for message in pubsub.listen():
-            # Check for new messages in Pub/Sub
-                if message["type"] == "message":
-                    # message['data'] is what you want
-                    await websocket.send_text(message["data"])
-            
-        except WebSocketDisconnect:
-            pubsub.unsubscribe(f"channel:{job_id}")
+    try:
+        while True:
+            message = await pubsub.get_message(ignore_subscribe_messages=True, timeout=1.0)
+
+            if message:
+                data = message["data"]
+
+                await websocket.send_text(data)
+
+                if data == "END":
+                    break
+
+            await asyncio.sleep(0.01)
+
+    except WebSocketDisconnect:
+        print("Client disconnected")
+
+    finally:
+        await pubsub.unsubscribe(f"channel:{job_id}")
+        await pubsub.close()
+        await websocket.close(code=1000)
+    
+
+    
