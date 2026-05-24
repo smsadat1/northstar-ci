@@ -24,7 +24,7 @@ message NSTelemetryHeartBeat {
 
 // downward traffic
 message NSTaskAssignment {
-  string job_id = 1;               // Unique ID tracking this execution step
-  string repo_name = 2;            // Target build identification
-  string pre_signed_s3_url = 3;    // Where the runner should download the compressed source tarball
+  string status = 1;            
+  string job_id = 2;            // Unique ID tracking execution
+  string assign_msg = 3;    
 }

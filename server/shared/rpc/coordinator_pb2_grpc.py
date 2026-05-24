@@ -3,7 +3,7 @@
 import grpc
 import warnings
 
-import coordinator_pb2 as coordinator__pb2
+from . import coordinator_pb2 as coordinator__pb2
 
 GRPC_GENERATED_VERSION = '1.80.0'
 GRPC_VERSION = grpc.__version__
@@ -30,7 +30,6 @@ class NSControlPlaneStub(object):
     The core control plane service managing global nodes
     Bi-directional stream: Runner continuously streams health/telemetry up,
     and nsprovisioner streams tasks/actions down over the exact same pipe.
-
     """
 
     def __init__(self, channel):
@@ -51,7 +50,6 @@ class NSControlPlaneServicer(object):
     The core control plane service managing global nodes
     Bi-directional stream: Runner continuously streams health/telemetry up,
     and nsprovisioner streams tasks/actions down over the exact same pipe.
-
     """
 
     def EstablishControlChannel(self, request_iterator, context):
@@ -81,7 +79,6 @@ class NSControlPlane(object):
     The core control plane service managing global nodes
     Bi-directional stream: Runner continuously streams health/telemetry up,
     and nsprovisioner streams tasks/actions down over the exact same pipe.
-
     """
 
     @staticmethod
