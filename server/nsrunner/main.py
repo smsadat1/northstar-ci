@@ -1,9 +1,8 @@
 import asyncio
-import os
 import threading
 
 from .envs import RUNNER_ID
-from .server import run_orchestrator
+from .server import connect_to_nsprovisioner
 from .telemertry import telemetry_bridge
 from shared.worker import celery_app
 
@@ -18,7 +17,7 @@ def start_grpc_thread():
     telemetry_bridge.register_loop(loop)
 
     # block this background thread running async gRPC engine
-    loop.run_until_complete(run_orchestrator())
+    loop.run_until_complete(connect_to_nsprovisioner())
 
 
 

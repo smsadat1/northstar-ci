@@ -16,8 +16,8 @@ RUN apt-get update && apt-get install -y \
     gcc g++ \
     && rm -rf /var/lib/apt/lists/* 
 
-COPY ./shared /app/shared
-COPY ./nsrunner /app/nsrunner
+COPY shared /app/shared
+COPY nsrunner /app/nsrunner
 
 COPY requirements.txt /app/requirements.txt
 

@@ -1,6 +1,6 @@
 import asyncio
-import socket
-import grpc 
+import grpc
+import sys
 
 from .envs import RUNNER_ID, TELEMETRY_BUFFER
 from .telemertry import telemetry_bridge
@@ -36,14 +36,46 @@ async def listen_tasks(response_reader):
             task_id=assignment.job_id # ties Celery tracking straight to global job ID
         )
 
+async def maintain_control_plane_stream(channel):
+    """
+    This function owns the actual life of the open streaming pipe.
+    It runs forever listening to or sending signals.
+    """
+    print("Control Plane stream session initialized. Initializing heartbeats...")
+    
+    # Instantiate your proto stubs using the active channel
+    # stub = coordinator_pb2_grpc.NSControlPlaneStub(channel)
+    
+    while True:
+        # Keep your async loop busy processing heartbeats or checking telemetry_bridge
+        await asyncio.sleep(1.0)
 
-async def run_orchestrator():
 
-    current_loop = asyncio._get_running_loop()
-    telemetry_bridge.register_loop(current_loop)
+async def connect_to_nsprovisioner(
+    server_address = 'nsprovisioner:50051', max_retries=10, initital_delay=1.0
+):
+    """
+    Attempts to establish an async channel to the provisioner.
+    Retries gracefully if the server is still booting up.
+    """
 
-    async with grpc.aio.insecure_channel('nsprovisioner:9901') as channel:
-        print('Initializing gRPC server')
-        stub = coordinator_pb2_grpc.NSControlPlaneStub(channel)
-        stream = stub.EstablishControlChannel()
-        await asyncio.gather(push_heartbeats(stream), listen_tasks(stream))
+    delay = initital_delay
+    print(f"Initializing Control Plane connection loop targeting: {server_address}")
+
+    for connection_attemp in range(1, max_retries+1):
+        try:
+            # Instantiate the async channel context
+            channel = grpc.aio.insecure_channel(server_address)
+            await asyncio.wait_for(channel.channel_ready(), timeout=2.0)  # wait for a while to get connection
+            print(f"Successfully linked to gRPC Control Plane on attempt {connection_attemp}!")
+            await maintain_control_plane_stream(channel)
+            return
+            
+        except (grpc.aio.AioRpcError, asyncio.TimeoutError) as e:
+            print(f"[Attempt {connection_attemp}/{max_retries}] Control Plane not ready yet (Connection Refused). Retrying in {delay}s...")
+            await asyncio.sleep(delay)
+            delay = delay * 2
+
+    print(f"\nFATAL: nsprovisioner at {server_address} remained unreachable after {max_retries} attempts.")
+    print("Verify your network configurations and container allocation tables.")
+    sys.exit(1)

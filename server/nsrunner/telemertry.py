@@ -33,7 +33,7 @@ class TelemetryBridge:
         """
 
         if not self._loop or not self._loop.is_running() or self._buffer is None:
-            logger.warning("⚠️ Drop Frame: Telemetry bridge is offline or loop not running yet.")
+            logger.warning("Drop Frame: Telemetry bridge is offline or loop not running yet.")
             return
 
         # package raw metric data into compiled gRPC message model
