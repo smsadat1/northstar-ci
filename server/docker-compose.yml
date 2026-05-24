@@ -1,41 +1,50 @@
 services:
 
-  api:
+  nsapi:
     build: 
       context: .
       dockerfile: nsapi/nsapi.Dockerfile
     image: ns-api:latest
     container_name: ns-api
     ports:
-      - "8000:8000"
+      - "8000"
     env_file:
       - .env
+    extra_hosts:
+      - "localhost:host-gateway"
 
-  provisioner:
+  nsprovisioner:
     build: 
       context: .
       dockerfile: nsprovisioner/nsprovisioner.Dockerfile
     image: ns-prv:latest
     container_name: ns-prv
+    ports:
+      - "50051:50051"
     env_file:
       - .env
     depends_on:
       - redis
 
-  runner:
+  nsrunner:
     build: 
       context: .
       dockerfile: nsrunner/nsrunner.Dockerfile
     image: ns-run:latest
-    container_name: ns-run
     privileged: true
     volumes:
       - /var/lib/containerd:/var/lib/containerd
       - /run/containerd:/run/containerd
       - /tmp/workspaces:/tmp/workspaces
+    env_file:
+      - .env
     environment:
       - RUNNER_ID=runner-123
       - PYTHONPATH=/app
+    extra_hosts:
+      - "localhost:host-gateway" 
+    depends_on:
+      - nsprovisioner
 
   redis:
     image: redis:7 
@@ -45,12 +54,12 @@ services:
     volumes:
       - redis_data:/data
 
-  beat:
-    build: .
-    command: celery -A nsrunner.imgmgr beat --loglevel=info
-    container_name: ns-beat
-    depends_on:
-      - redis
+  # beat:
+  #   build: .
+  #   command: celery -A nsrunner.imgmgr beat --loglevel=info
+  #   container_name: ns-beat
+  #   depends_on:
+  #     - redis
 
   worker:
     build: .
