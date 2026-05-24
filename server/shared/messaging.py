@@ -2,8 +2,6 @@ from abc import ABC, abstractmethod
 import json
 import redis
 
-from .schema import JobSpecSchema
-
 class NS_MessageProvider(ABC):
 
     @abstractmethod

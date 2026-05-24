@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package northstar;
+
+/*
+* The core control plane service managing global nodes
+* Bi-directional stream: Runner continuously streams health/telemetry up,
+* and nsprovisioner streams tasks/actions down over the exact same pipe.
+*/
+service NSControlPlane {
+  rpc EstablishControlChannel(stream NSTelemetryHeartBeat) returns (stream NSTaskAssignment);
+}
+
+// upward traffic
+message NSTelemetryHeartBeat {
+  string runner_id = 1;
+  string current_job_id = 2;       
+  string region = 3;               // e.g., "Singapore", "Tokyo", "Homelab-UserA"
+  
+  int32 queue_len = 4;             // Current local queue depth
+  float ema_velocity = 5;          // Avg jobs completed per second/minute
+  float backlog_scope = 6;         // Time debt remaining (Queue Len / Velocity)
+}
+
+// downward traffic
+message NSTaskAssignment {
+  string job_id = 1;               // Unique ID tracking this execution step
+  string repo_name = 2;            // Target build identification
+  string pre_signed_s3_url = 3;    // Where the runner should download the compressed source tarball
+}
