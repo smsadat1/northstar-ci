@@ -22,6 +22,7 @@ def download_and_extract_workspace(storage_client, job_id, workspace_dir):
             
         # If success is False, handle backoff and retries manually
         print(f"[nsrunner] Download attempt {attempt} failed (Asset missing or MinIO/S3 replication lag).")
+        print(f"S3 URL: workspaces/{job_id}.tar.gz | zip: {local_zip}")
 
         if attempt == max_attempts:
             print(f"[nsrunner] CRITICAL: Workspace download failed permanently after {max_attempts} attempts.")
@@ -48,3 +49,5 @@ def download_and_extract_workspace(storage_client, job_id, workspace_dir):
     except Exception as e:
         print(f"[nsrunner] Critical error during extraction: {e}")
         return False
+    
+

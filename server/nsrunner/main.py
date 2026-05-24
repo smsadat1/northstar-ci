@@ -1,25 +1,47 @@
+import asyncio
 import os
 import threading
 
-from .heartbeat import send_hearbeat
+from .envs import RUNNER_ID
+from .server import run_orchestrator
+from .telemertry import telemetry_bridge
 from shared.worker import celery_app
 
-RUNNER_ID = os.getenv("RUNNER_ID", "runner-123")
+def start_grpc_thread():
+    """Background target that handles the async event loop lifecycle."""
+    
+    # create dedicated event loop for this thread
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
+    # register loop with state-machine bridge so the sync Celery worker can thread-safely send metrics to it later
+    telemetry_bridge.register_loop(loop)
+
+    # block this background thread running async gRPC engine
+    loop.run_until_complete(run_orchestrator())
+
 
 
 if __name__ == "__main__":
 
-    t = threading.Thread(target=send_hearbeat, daemon=True)
-    t.start()
+    # boot grpc server and send a registry payload
+    print(f"[nsrunner] Launching gRPC background thread...")
+    grpc_thread = threading.Thread(target=start_grpc_thread, daemon=True)
+    grpc_thread.start()
+
+    print(f"[nsrunner] Step 2: Dispatching initial zeroed registration heartbeat...")
+    telemetry_bridge.send(
+        runner_id=RUNNER_ID, job_id='', region='Singapore',
+        queue_len=0, ema_velocity=0.0, backlog_scope=0.0
+    ) 
 
     print(f"[nsrunner] Instantiating Celery Worker object programmatically...")
-    
-    # 2. Boot the worker object directly bypassing command-line string parsing
     worker = celery_app.Worker(
         queues=[f'queue-{RUNNER_ID}'],
         loglevel='INFO',
-        optimization='fair' # Recommended for isolated job execution
+        optimization='fair' # for isolated job execution
     )
     
-    # 3. Start the worker loop. This blocks the main thread permanently.
+    # start the worker loop. This blocks the main thread permanently
+    # while the gRPC thread manages bi-directional heartbeat stream in the background
     worker.start()

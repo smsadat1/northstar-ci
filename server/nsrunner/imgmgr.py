@@ -1,13 +1,9 @@
 # manages and caches images 
 import subprocess
 
+from envs import ALLOWED_IMAGES
 from shared.worker import celery_app
 
-ALLOWED_IMAGES = {
-    "python": "python:3.11-slim",
-    "node": "node:20-alpine",
-    "bash": "alpine:latest"
-}
 
 @celery_app.task
 def prewarm_images():
