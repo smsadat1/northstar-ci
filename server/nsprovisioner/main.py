@@ -1,7 +1,11 @@
-# manager runner
+import asyncio
+import json
 import time
 
-from discovery import get_healthy_runner
+from dispatcher import dispatch_job
+from rpcserver import start_grpc_thread_loop
+import threading
+
 
 from shared.config import NS_RedisProvider, sync_r
 from shared.logger import log_event
@@ -10,51 +14,49 @@ from shared.worker import celery_app
 
 message_broker = NS_RedisProvider()
 
-def ns_provisioner():
+def start_nsprovisioner():
     """
-    Main loop for the Provisioner service.
+    Main loop for the nsprovisioner service.
     Runs in its own container and orchestrates the job lifecycle.
     """
-    print("Service started. Watching 'job_queue'...")
+    print("nrovisioner active. Listening to global job_queue...")
 
     while True:
         job_spec = message_broker.pop_job(queue_name="job_queue")
-        print(f"DEBUG REDIS RESULT: {job_spec} | TYPE: {type(job_spec)}")
 
         if job_spec is None:
             continue
 
+        print(f"DEBUG REDIS RESULT: {job_spec} | TYPE: {type(job_spec)}")
+
+        # Ensure safe extraction whether broker outputs a dict or stringified JSON
+        if isinstance(job_spec, str):
+            try:
+                job_spec = json.loads(job_spec)
+            except Exception:
+                print("Failed to parse incoming job queue payload string!")
+                continue
+
         job_id = job_spec.get('job_id')
         log_event(job_id, "[nsprovisioner] Job detected. Finding runner...")
 
-        # find a runner with < 80% load
-        runner = get_healthy_runner(max_load=80)
-
-        if not runner:
-            log_event(job_id, "[nsprovisioner] No capacity! Re-queueing...")
-            # Push back to the end of the queue and wait a bit
-            message_broker.push_job(queue_name="job_queue", payload=job_spec)
-            time.sleep(2)
-            continue
-
-        runner_queue = f"queue-{runner['id']}"
-        runner_id = runner['id']
-        
-        runner_ip = runner.get('ip')
-
-        if not runner_ip:
-            print(f"Warning: Runner {runner.get('id')} has a registry entry but no IP yet. Skipping...", flush=True)
-            continue
-
-        # register the assignment in Redis for the API to see
-        sync_r.hset(
-            f"job:registry:{job_id}", 
-            mapping={"runner_id": runner_id, "runner_ip": runner_ip, "status": "APPROVED"}
-        )
-
-        log_event(job_id=job_id, message=f"[nsprovisioner] Allocated Runner ID: {runner_id} | IP: {runner_ip} | Queue: {runner_queue}")
-        celery_app.send_task('tasks.nsrunner', args=[job_spec, runner['id'], False], queue=runner_queue)
+        dispatch_job(job_spec=job_spec)
 
 if __name__  == "__main__":
-    print("Initializing nsprovisioner")
-    ns_provisioner()
+    
+    print("Initializing nsprovisioner control plane setup...")
+    
+    print("Launching gRPC background ingestion thread...")
+    grpc_event_loop = asyncio.new_event_loop()
+    grpc_thread = threading.Thread(
+        target=start_grpc_thread_loop, 
+        args=(grpc_event_loop,), daemon=True
+    )
+    grpc_thread.start()
+
+    # wait a while to let the socket binf
+    time.sleep(0.5)
+
+    # Start the blocking master execution pipeline on the main process thread
+    print("Initializing nsprovisioner queue worker loop...")
+    start_nsprovisioner()
