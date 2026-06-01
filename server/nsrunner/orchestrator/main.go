@@ -19,7 +19,7 @@ func taskline(nsris NSRInstructionSet) {
 			// environment
 			env:               nsris.BuildEnv,
 			hostSrcpath:       nsris.filepath,
-			containerDestPath: "/workspace",
+			containerDestPath: "/mnt",
 
 			// rules
 			memoryLimitMB:  nsris.MemoryLimitMB,
@@ -27,12 +27,12 @@ func taskline(nsris NSRInstructionSet) {
 			cpuShares:      nsris.CpuShares,
 			cpuCores:       float64(nsris.CpuShares),
 			noNewPrivilege: true,
-			readOnlyRootfs: true,
-			allowNetwork:   false,
+			readOnlyRootfs: false,
+			allowNetwork:   true,
 			timeoutsec:     uint32(nsris.TimeoutSec),
 		}
 
-		if err := NSRExecute(rules); err == nil {
+		if err := NSRExecute(rules); err != nil {
 			nsrLogger("Halting task...")
 			return
 		}
@@ -54,7 +54,7 @@ func taskline(nsris NSRInstructionSet) {
 		// environment
 		env:               nsris.BuildEnv,
 		hostSrcpath:       nsris.filepath,
-		containerDestPath: "/workspace",
+		containerDestPath: "/mnt",
 
 		// rules
 		memoryLimitMB:  nsris.MemoryLimitMB,
@@ -62,12 +62,12 @@ func taskline(nsris NSRInstructionSet) {
 		cpuShares:      nsris.CpuShares,
 		cpuCores:       float64(nsris.CpuShares),
 		noNewPrivilege: true,
-		readOnlyRootfs: true,
+		readOnlyRootfs: false,
 		allowNetwork:   true,
 		timeoutsec:     uint32(nsris.TimeoutSec),
 	}
 
-	if err := NSRExecute(rules); err == nil {
+	if err := NSRExecute(rules); err != nil {
 		nsrLogger("Halting task...")
 		return
 	}
@@ -89,7 +89,7 @@ func taskline(nsris NSRInstructionSet) {
 		// environment
 		env:               nsris.BuildEnv,
 		hostSrcpath:       nsris.filepath,
-		containerDestPath: "/workspace",
+		containerDestPath: "/mnt",
 
 		// rules
 		memoryLimitMB:  nsris.MemoryLimitMB,
@@ -97,12 +97,12 @@ func taskline(nsris NSRInstructionSet) {
 		cpuShares:      nsris.CpuShares,
 		cpuCores:       float64(nsris.CpuShares),
 		noNewPrivilege: true,
-		readOnlyRootfs: true,
-		allowNetwork:   false,
+		readOnlyRootfs: false,
+		allowNetwork:   true,
 		timeoutsec:     uint32(nsris.TimeoutSec),
 	}
 
-	if err := NSRExecute(rules); err == nil {
+	if err := NSRExecute(rules); err != nil {
 		nsrLogger("Halting task...")
 		return
 	}
@@ -111,6 +111,8 @@ func taskline(nsris NSRInstructionSet) {
 }
 
 func main() {
+	// disable default timestamp
+	log.SetFlags(0)
 
 	// define the environment maps explicitly
 	lintEnvironment := map[string]string{
@@ -130,7 +132,7 @@ func main() {
 
 	nsris := NSRInstructionSet{
 		containerID: "ci-pipeline-job-2026",
-		filepath:    "/tmp/local-ci-workspace",
+		filepath:    "/tmp/nsci",
 
 		TimeoutSec:    120,
 		MemoryLimitMB: 512,
@@ -139,15 +141,16 @@ func main() {
 		DiskLimitMB:   200,
 
 		LintRuntime: "python-3.12",
-		LintCommand: "pip install --quiet flake8 && flake8 /workspace",
-		LintEnv:     lintEnvironment,
+		LintCommand: "pip install --quiet flake8 && cd /mnt && flake8 .",
+		// LintCommand: "ls -la / && ls -la /tmp",
+		LintEnv: lintEnvironment,
 
 		BuildRuntime: "python-3.12",
-		BuildCommand: "if [ -f /workspace/requirements.txt ]; then pip install -r /workspace/requirements.txt; fi",
+		BuildCommand: "if [ -f /mnt/requirements.txt ]; then pip install -r /mnt/requirements.txt; fi",
 		BuildEnv:     buildEnvironment,
 
 		TestRuntime: "python-3.12",
-		TestCommand: "pip install --quiet pytest && cd /workspace && pytest -v",
+		TestCommand: "pip install pytest && cd /mnt/tests && pytest -v",
 		TestEnv:     testEnvironment,
 	}
 

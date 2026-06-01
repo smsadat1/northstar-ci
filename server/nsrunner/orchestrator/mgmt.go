@@ -68,7 +68,7 @@ func createAndManageTask(
 		if err != nil {
 			return err
 		}
-		log.Printf("Network provisioned automatically! Container IP: %s\n", result.Interfaces["eth0"].IPConfigs[0].IP)
+		nsrLogger("Network provisioned automatically! Container IP: %s\n", result.Interfaces["eth0"].IPConfigs[0].IP)
 
 		defer network.Remove(ctx, id, netNS)
 		defer os.RemoveAll(tmpNetCfgDir)
@@ -90,7 +90,8 @@ func createAndManageTask(
 	}
 	nsrLogger("Task started successfully")
 
-	ctxTimeout, cancel := context.WithTimeout(ctx, time.Duration(rules.timeoutsec))
+	timeoutDuration := time.Duration(rules.timeoutsec) * time.Second
+	ctxTimeout, cancel := context.WithTimeout(ctx, timeoutDuration)
 	defer cancel()
 
 	// dynamic wait block

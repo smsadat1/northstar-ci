@@ -98,18 +98,18 @@ func pullContainerImage(imageName string, client *containerd.Client, ctx context
 	image, err := client.GetImage(ctx, imageName)
 
 	if err == nil {
-		fmt.Printf("[nsrunner] Image: %v found locally, skipping download\n", imageName)
+		nsrLogger("Image: %v found locally, skipping download\n", imageName)
 		return image
 	} else if errdefs.IsNotFound(err) {
-		fmt.Printf("Image: %v not found locally, downloading image...\n", imageName)
+		nsrLogger("Image: %v not found locally, downloading image...\n", imageName)
 		// download image
 		image, err := client.Pull(ctx, imageName, containerd.WithPullUnpack)
 		if err != nil {
 			return nil
 		}
-		log.Printf("[nsrunner] Successfully downloaded and pulled image: %s\n", image.Name())
+		nsrLogger("Successfully downloaded and pulled image: %s\n", image.Name())
 	} else {
-		fmt.Printf("[nsrunner] Unexpected error occured querying image %v", err)
+		nsrLogger("Unexpected error occured querying image %v", err)
 		return nil
 	}
 
@@ -152,9 +152,6 @@ func buildSpecOpts(
 
 		// env
 		oci.WithEnv(ociEnvs),
-
-		// command to execute
-		oci.WithProcessArgs("sh", "-c", command),
 	}
 
 	// file mount
@@ -167,7 +164,7 @@ func buildSpecOpts(
 				/* "ro" makes it read-only for security, "rw" makes writable
 				* "rbind" ensures sub-mounts are included, "nodev"/"nosuid" are standard sandbox protections
 				 */
-				Options: []string{"rbind", "ro", "nodev", "nosuid"},
+				Options: []string{"rbind", "ro", "nodev", "nosuid", "create=dir"},
 			},
 		}))
 	}
@@ -180,6 +177,12 @@ func buildSpecOpts(
 		opts = append(opts, oci.WithRootFSReadonly())
 	}
 
+	// evaluated last to guarantee execution parameters survive
+	if command != "" {
+		processArgs := []string{"/bin/sh", "-c", command}
+		opts = append(opts, oci.WithProcessArgs(processArgs...))
+	}
+
 	return opts
 }
 
@@ -189,6 +192,12 @@ func enforceContainerLimits(
 	rules NSContainerRules,
 	image containerd.Image,
 ) (containerd.Container, string, error) {
+
+	if image == nil {
+		return nil, "", fmt.Errorf("cannot enforce limits: provided image object is nil")
+	}
+
+	fmt.Printf("Command: %v\n", rules.command)
 
 	snapshotID := rules.containerID + "-snapshot"
 
@@ -213,7 +222,7 @@ func enforceContainerLimits(
 func streamContainerLogs(prefix string, reader io.Reader) {
 	scanner := bufio.NewScanner(reader)
 	for scanner.Scan() {
-		nsrLogger(scanner.Text())
+		fmt.Printf("%s\n", scanner.Text())
 	}
 }
 
@@ -227,6 +236,8 @@ func parseToEnv(envMap map[string]string) []string {
 }
 
 // logs with tag
-func nsrLogger(logstring string) {
-	log.Println("[nsrunner] " + logstring)
+func nsrLogger(format string, v ...interface{}) {
+	currentTime := time.Now().Format("2006/01/02 15:04:05")
+	prefix := fmt.Sprintf("[nsrunner] [%s] ", currentTime)
+	log.Printf(prefix+format, v...)
 }
