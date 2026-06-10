@@ -42,8 +42,8 @@ def parse_yaml_to_json(yaml_file):
     target_file = data.get('target_file')
 
     # extract stages
-    stages_list = data.get('jobs', {}).get('stages', [])
-    resource_limits = data.get('jobs', {}).get('limits',[])
+    stages_list = data.get('pipeline', {}).get('stages', [])
+    resource_limits = data.get('pipeline', {}).get('limits',[])
 
     lint_stage = next((s['lint'] for s in stages_list if 'lint' in s), {})
     lint_envs = lint_stage.get("environment", {})
@@ -131,7 +131,7 @@ def parse_yaml_to_json(yaml_file):
         "target_file": target_file,
         "submitted_at": submitted_at,
 
-        "job": {
+        "pipeline": {
             "limits": resource_limits,
             "stages": {
                 "lint": {
@@ -159,5 +159,8 @@ def parse_yaml_to_json(yaml_file):
         }
     }
 
-    return json_payload
+    print(json.dumps(json_payload, indent=4))
     
+
+if __name__ == "__main__":
+    parse_yaml_to_json('examples/clidef.yaml')

@@ -27,19 +27,16 @@ def nsci_client_main():
     target = json_data.get('target_file')
 
     if isinstance(target, str) and target.strip():
-        file_path = Path(target)
+        file_path = Path(target).resolve()
         tar_buffer = io.BytesIO()
         with tarfile.open(fileobj=tar_buffer, mode="w:gz") as tar:
-            clean_filename = os.path.basename(args.input)
-            tar.add(args.input, arcname=clean_filename)
+            clean_filename = file_path.name
+            tar.add(file_path, arcname=clean_filename)
 
         # Move buffer pointer back to the beginning of the stream
         tar_buffer.seek(0)
 
-    # Payload payload needs to be packaged for multipart/form-data
-    payload = {"job_spec_str": json.dumps(json_data)}
-    
-    res = requests.post(url="http://127.0.0.1:8000/jobs/run", data=payload)
+    res = requests.post(url="http://127.0.0.1:8000/jobs/run", json=json_data)
 
     
     if res.status_code == 200:
@@ -51,14 +48,6 @@ def nsci_client_main():
 
         # LOCAL TESTING PATCH: Swap out Docker's internal container name for 'localhost'
         if s3_upload_url:
-            if "http://storage:9000" in s3_upload_url:
-                s3_upload_url = s3_upload_url.replace("http://storage:9000", "http://localhost:9000")
-            elif "http://ns-storage-bucket.storage:9000" in s3_upload_url:
-                s3_upload_url = s3_upload_url.replace(
-                    "http://ns-storage-bucket.storage:9000", 
-                    "http://localhost:9000/ns-storage-bucket"
-                )
-
             local_tarball_path = f"/tmp/{job_id}.tar.gz"
             print(f"[ns-cli] Compressing {file_path} into {local_tarball_path}...")
 
@@ -84,6 +73,8 @@ def nsci_client_main():
     elif res.status_code == 401:
         print(res.json()['detail'])
         return
+    elif res.status_code == 422:
+        print("\033[31m✘\033[0m Validation Error (422 Mismatch Found):")
     else:
         print(f"\033[31m✘\033[0m Error from server:", res.status_code)
         return

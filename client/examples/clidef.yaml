@@ -1,0 +1,51 @@
+version: "0.0.1a"
+target_file: examples/hudai.py
+
+matrix:
+  python_version: [python-3.11, python-3.12]
+  environment: [staging, production]
+
+pipeline:
+
+  limits:
+    timeout_seconds: 10
+    memory_mb: 256
+    max_stdout_kb: 1024
+    cpu_count: 2
+
+  stages:
+
+    - lint:
+        runtime: "{python_version}"
+        environment:
+          PYTHONUNBUFFERED: "1"
+        command: |
+          python -m py_compile hudai.py
+
+    - build:
+        runtime: "{python_version}"
+        environment:
+          PYTHONUNBUFFERED: "1"
+          NORTHSTAR_ENV: "{environment}"
+        command: |
+          mkdir -p /tmp/build
+          cp hudai.py /tmp/build/hudai.py
+
+    - test:
+        runtime: "{python_version}"
+        environment:
+          PYTHONUNBUFFERED: "1"
+        command: |
+          python /tmp/build/hudai.py
+
+    - deploy:
+        runtime: alpine
+        environment:
+          SSH_HOST: "deploy.example.internal"
+          SSH_USER: "deployer"
+          SSH_PORT: "22"
+        command: |
+          echo "Deploying build to {environment}"
+        steps:
+          - scp -r /tmp/build deployer@deploy.example.internal:/opt/northstar/app
+          - ssh deployer@deploy.example.internal "cd /opt/northstar/app && docker compose up -d"
