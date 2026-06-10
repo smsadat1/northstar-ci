@@ -6,7 +6,6 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 
 from shared.config import message_broker, async_r
 from shared.logger import log_event
-from shared.storage import StorageManager
 
 from s3client import generate_presigned_s3_url
 from utils import ns_job_specs
@@ -15,7 +14,6 @@ from validator import NSAPIContract
 
 load_dotenv()
 app = FastAPI()
-storage = StorageManager()
 
 MINIO_BUCKET = os.getenv("MINIO_BUCKET", "MINIO_BUCKET")
 

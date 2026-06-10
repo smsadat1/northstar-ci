@@ -4,47 +4,60 @@ from validator import NSAPIContract
 from shared.schema import NSJobSpecSchema
 
 
-def generate_job_id():
+def generate_pipeline_id():
     job_id = nanoid.generate(size=12)
     return job_id
+
+def fetch_owner_id():
+    return "owner123"
 
 
 def ns_job_specs(
     contract: NSAPIContract
 ) -> NSJobSpecSchema:
 
-    b_timeout = contract.job.stages.build.limits.timeout_seconds
-    b_memory = contract.job.stages.build.limits.memory_mb
-    b_stdout_size = contract.job.stages.build.limits.max_stdout_kb
-    r_timeout = contract.job.stages.run.limits.timeout_seconds
-    r_memory = contract.job.stages.run.limits.memory_mb
-    r_stdout_size = contract.job.stages.run.limits.max_stdout_kb
+    timeout_seconds: int = contract.pipeline.limits.timeout_seconds or 600
+    memory_mb: int = contract.pipeline.limits.memory_mb or 4
+    max_stdout_kb: int = contract.pipeline.limits.max_stdout_kb or 512
+    cpu_count: int = contract.pipeline.limits.cpu_count or 2
 
     job_spec_metada = NSJobSpecSchema(
         
         # system
-        job_id=generate_job_id(),
+        owner_id=fetch_owner_id(),
+        pipeline_id=generate_pipeline_id(),
         runner_id='',   # nsprovisioner will decide
 
-        # commands level
-        build_command=contract.job.stages.build.command,
-        build_image=contract.job.stages.build.runtime,
-        build_output_path=contract.job.stages.build.output,
-        run_command=contract.job.stages.run.command,
-        run_image=contract.job.stages.run.runtime,
-        
-        # resource limits enforcements
-        build_timeout= b_timeout or 600,
-        build_memory_limit= b_memory or 512,
-        build_log_size= b_stdout_size or 512,
-        run_timeout= r_timeout or 600,
-        run_memory_limit= r_memory or 512,
-        run_log_size= r_stdout_size or 512,
+        # limits
+        timeout_seconds=timeout_seconds,
+        memory_mb=memory_mb,
+        max_stdout_kb=max_stdout_kb,
+        cpu_count=cpu_count,
 
-        env=contract.job.stages.build.environment,
-        status='',
-        has_file= contract.target_file is not None,
-        src_url='',
+        # stages
+        lint_runtimes=contract.pipeline.stages.lint.runtime,
+        lint_envs=contract.pipeline.stages.lint.environment,
+        lint_commands=contract.pipeline.stages.lint.command,
+
+        build_runtimes=contract.pipeline.stages.build.runtime,
+        build_envs=contract.pipeline.stages.build.environment,
+        build_commands=contract.pipeline.stages.build.command,
+
+        test_runtimes=contract.pipeline.stages.test.runtime,
+        test_envs=contract.pipeline.stages.test.environment,
+        test_commands=contract.pipeline.stages.test.command,
+
+        deploy_runtimes=contract.pipeline.stages.deploy.stages.runtime,
+        deploy_envs=contract.pipeline.stages.deploy.stages.environment,
+        deploy_commands=contract.pipeline.stages.deploy.stages.command,
+        deploy_steps=contract.pipeline.stages.deploy.steps,
+
+        # utils
+        status='',      # used for status marking at later stages
+        # used by nsrunner to decide file downloads
+        has_file= contract.target_file is not None, 
+        # in case of passed repo url instead of filepath from cli client
+        src_url= str(contract.target_url) if contract.target_file is None else '',     
     ) 
 
     return job_spec_metada

@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package northstar;
+
+option go_package = "./pb";
+import "google/protobuf/empty.proto";
+
+
+// port 50051 | nsprovisioner sends one way task payload to nsrunner
+service TaskExec {
+    // Unary RPC: Scheduler pushes a task, runner drops it into the local pipeline queue instantly
+    rpc PushTask (NSRTask) returns (google.protobuf.Empty);
+}
+
+// port 50052 | nsrunner sends one way heartbeat paylaods in set interval
+service Heartbeat {
+    // Unary RPC: Runner hits this every 15 seconds to stream telemetry spikes
+    rpc SendHeartbeat (NSRHeartBeat) returns (google.protobuf.Empty);
+}
+
+message NSRTask {
+    string owner_id = 1;
+    string region = 2;
+    string container_id = 3;
+    string s3url = 4;
+
+    uint32 timeout_sec = 5;
+    uint64 memory_limit_mb = 6;
+    uint64 max_stdout_kb = 7;
+    uint64 cpu_shares = 8;
+    uint64 diskt_limits = 9;
+
+    string lint_runtime = 10;
+    string lint_command = 11;
+    map<string, string> lint_env = 12;
+
+    string build_runtime = 13;
+    string build_command = 14;
+    map<string, string> build_env = 15;
+
+    string test_runtime = 16;
+    string test_command = 17;
+    map<string, string> test_env = 18;
+}
+
+message NSRHeartBeat {
+    double cpu_percent = 1;
+    double mem_percent = 2;
+    double disk_percent = 3;
+}

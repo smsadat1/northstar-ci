@@ -11,8 +11,7 @@ COPY shared/ /app/shared/
 COPY nsapi/ /app/
 COPY requirements.txt /app/requirements.txt
 
-RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
+RUN pip install -r requirements.txt --timeout=1000
 
 EXPOSE 8000
 
