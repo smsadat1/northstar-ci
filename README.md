@@ -28,7 +28,9 @@ Key goals:
 
 ![Northstar Architecture](docs/assets/archdiagram.png)
 
-Northstar consists of several services:
+Northstar follows a distributed control-plane and runner architecture designed around the Bring Your Own Runner (BYOR) philosophy.
+
+Core services:
 
 | Service | Purpose |
 |----------|----------|
@@ -36,6 +38,23 @@ Northstar consists of several services:
 | nsprovisioner | Runner orchestration and job scheduling |
 | nsrunner | Build execution and sandbox management |
 | nshook | Webhook receiver for repository events |
+
+For a detailed breakdown of the system architecture, service responsibilities, communication patterns, design decisions, and architectural evolution, see:
+
+**Architecture Documentation**  
+→ [docs/architecture](docs/architecture)
+
+The architecture documentation covers:
+
+- System overview
+- Service responsibilities
+- gRPC communication model
+- Runner lifecycle
+- Job execution flow
+- Logging architecture
+- Deployment architecture
+- BYOR design philosophy
+- Architectural revisions and evolution history
 
 ---
 
