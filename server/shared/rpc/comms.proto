@@ -4,6 +4,7 @@ package northstar;
 
 option go_package = "./pb";
 import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
 
 
 // port 50051 | nsprovisioner sends one way task payload to nsrunner
@@ -44,7 +45,17 @@ message NSRTask {
 }
 
 message NSRHeartBeat {
-    double cpu_percent = 1;
-    double mem_percent = 2;
-    double disk_percent = 3;
+    // identity
+    string owner_id = 1;
+    string runner_id = 2;
+    string runner_ip = 3;
+    string region = 4;
+
+    // system
+    double cpu_percent = 5;
+    double mem_percent = 6;
+    double disk_percent = 7;
+
+    // metadata
+    google.protobuf.Timestamp heartbeat_time = 8;
 }
