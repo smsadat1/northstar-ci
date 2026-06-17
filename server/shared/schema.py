@@ -40,26 +40,29 @@ class NSJobSpecSchema(BaseModel):
 # final job_spec after job_spec expansion by nsprovisioner
 class NSRunnerJobSpec(BaseModel):
     # system
-    job_id: str 
+    pipeline_id: str 
     task_id: str
-    
-    # command level
-    build_command: str
-    build_image: str
-    build_output_path: str
-    run_command: str
-    run_image: str
 
     # resource enforments
-    build_timeout: int
-    build_memory_limit: int 
-    build_log_size: int
-    run_timeout: int
-    run_memory_limit: int 
-    run_log_size: int
+    timeout_seconds: int
+    memory_mb: int
+    max_stdout_kb: int
+    cpu_count: int
+    
+    # stages
+    lint_runtime: str 
+    lint_envs: dict[str, str]
+    lint_command: str
+
+    build_runtime: str 
+    build_envs: dict[str, str]
+    build_command: str 
+    
+    test_runtime: str 
+    test_envs: dict[str, str]
+    test_command: str
     
     # params
     status: str
     has_file: bool
-    env: dict[str, str]
     src_url: str
