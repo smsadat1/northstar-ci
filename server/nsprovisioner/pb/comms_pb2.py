@@ -22,11 +22,10 @@ _runtime_version.ValidateProtobufRuntimeVersion(
 _sym_db = _symbol_database.Default()
 
 
-from google.protobuf import empty_pb2 as google_dot_protobuf_dot_empty__pb2
 from google.protobuf import timestamp_pb2 as google_dot_protobuf_dot_timestamp__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0b\x63omms.proto\x12\tnorthstar\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xf1\x04\n\x07NSRTask\x12\x10\n\x08owner_id\x18\x01 \x01(\t\x12\x0e\n\x06region\x18\x02 \x01(\t\x12\x14\n\x0c\x63ontainer_id\x18\x03 \x01(\t\x12\r\n\x05s3url\x18\x04 \x01(\t\x12\x13\n\x0btimeout_sec\x18\x05 \x01(\r\x12\x17\n\x0fmemory_limit_mb\x18\x06 \x01(\x04\x12\x15\n\rmax_stdout_kb\x18\x07 \x01(\x04\x12\x12\n\ncpu_shares\x18\x08 \x01(\x04\x12\x14\n\x0c\x64iskt_limits\x18\t \x01(\x04\x12\x14\n\x0clint_runtime\x18\n \x01(\t\x12\x14\n\x0clint_command\x18\x0b \x01(\t\x12\x31\n\x08lint_env\x18\x0c \x03(\x0b\x32\x1f.northstar.NSRTask.LintEnvEntry\x12\x15\n\rbuild_runtime\x18\r \x01(\t\x12\x15\n\rbuild_command\x18\x0e \x01(\t\x12\x33\n\tbuild_env\x18\x0f \x03(\x0b\x32 .northstar.NSRTask.BuildEnvEntry\x12\x14\n\x0ctest_runtime\x18\x10 \x01(\t\x12\x14\n\x0ctest_command\x18\x11 \x01(\t\x12\x31\n\x08test_env\x18\x12 \x03(\x0b\x32\x1f.northstar.NSRTask.TestEnvEntry\x1a.\n\x0cLintEnvEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a/\n\rBuildEnvEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a.\n\x0cTestEnvEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\xca\x01\n\x0cNSRHeartBeat\x12\x10\n\x08owner_id\x18\x01 \x01(\t\x12\x11\n\trunner_id\x18\x02 \x01(\t\x12\x11\n\trunner_ip\x18\x03 \x01(\t\x12\x0e\n\x06region\x18\x04 \x01(\t\x12\x13\n\x0b\x63pu_percent\x18\x05 \x01(\x01\x12\x13\n\x0bmem_percent\x18\x06 \x01(\x01\x12\x14\n\x0c\x64isk_percent\x18\x07 \x01(\x01\x12\x32\n\x0eheartbeat_time\x18\x08 \x01(\x0b\x32\x1a.google.protobuf.Timestamp2B\n\x08TaskExec\x12\x36\n\x08PushTask\x12\x12.northstar.NSRTask\x1a\x16.google.protobuf.Empty2M\n\tHeartbeat\x12@\n\rSendHeartbeat\x12\x17.northstar.NSRHeartBeat\x1a\x16.google.protobuf.EmptyB\x06Z\x04./pbb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0b\x63omms.proto\x12\tnorthstar\x1a\x1fgoogle/protobuf/timestamp.proto\"Y\n\x0eRunnerIdentity\x12\x10\n\x08owner_id\x18\x01 \x01(\t\x12\x11\n\trunner_id\x18\x02 \x01(\t\x12\x11\n\trunner_ip\x18\x03 \x01(\t\x12\x0f\n\x07version\x18\x04 \x01(\t\"E\n\x0fNSRTaskResponse\x12\x10\n\x08has_task\x18\x01 \x01(\x08\x12 \n\x04task\x18\x02 \x01(\x0b\x32\x12.northstar.NSRTask\"\xb9\x04\n\x07NSRTask\x12\r\n\x05s3url\x18\x04 \x01(\t\x12\x13\n\x0btimeout_sec\x18\x05 \x01(\r\x12\x17\n\x0fmemory_limit_mb\x18\x06 \x01(\x04\x12\x15\n\rmax_stdout_kb\x18\x07 \x01(\x04\x12\x12\n\ncpu_shares\x18\x08 \x01(\x04\x12\x14\n\x0c\x64iskt_limits\x18\t \x01(\x04\x12\x14\n\x0clint_runtime\x18\n \x01(\t\x12\x14\n\x0clint_command\x18\x0b \x01(\t\x12\x31\n\x08lint_env\x18\x0c \x03(\x0b\x32\x1f.northstar.NSRTask.LintEnvEntry\x12\x15\n\rbuild_runtime\x18\r \x01(\t\x12\x15\n\rbuild_command\x18\x0e \x01(\t\x12\x33\n\tbuild_env\x18\x0f \x03(\x0b\x32 .northstar.NSRTask.BuildEnvEntry\x12\x14\n\x0ctest_runtime\x18\x10 \x01(\t\x12\x14\n\x0ctest_command\x18\x11 \x01(\t\x12\x31\n\x08test_env\x18\x12 \x03(\x0b\x32\x1f.northstar.NSRTask.TestEnvEntry\x1a.\n\x0cLintEnvEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a/\n\rBuildEnvEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a.\n\x0cTestEnvEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\xca\x01\n\x0cNSRHeartBeat\x12\x10\n\x08owner_id\x18\x01 \x01(\t\x12\x11\n\trunner_id\x18\x02 \x01(\t\x12\x11\n\trunner_ip\x18\x03 \x01(\t\x12\x0e\n\x06region\x18\x04 \x01(\t\x12\x13\n\x0b\x63pu_percent\x18\x05 \x01(\x01\x12\x13\n\x0bmem_percent\x18\x06 \x01(\x01\x12\x14\n\x0c\x64isk_percent\x18\x07 \x01(\x01\x12\x32\n\x0eheartbeat_time\x18\x08 \x01(\x0b\x32\x1a.google.protobuf.Timestamp2\xa0\x01\n\x10TaskQueueService\x12\x46\n\rFetchNextTask\x12\x19.northstar.RunnerIdentity\x1a\x1a.northstar.NSRTaskResponse\x12\x44\n\rSendHeartBeat\x12\x17.northstar.NSRHeartBeat\x1a\x1a.northstar.NSRTaskResponseB\x06Z\x04./pbb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -40,18 +39,20 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_NSRTASK_BUILDENVENTRY']._serialized_options = b'8\001'
   _globals['_NSRTASK_TESTENVENTRY']._loaded_options = None
   _globals['_NSRTASK_TESTENVENTRY']._serialized_options = b'8\001'
-  _globals['_NSRTASK']._serialized_start=89
-  _globals['_NSRTASK']._serialized_end=714
-  _globals['_NSRTASK_LINTENVENTRY']._serialized_start=571
-  _globals['_NSRTASK_LINTENVENTRY']._serialized_end=617
-  _globals['_NSRTASK_BUILDENVENTRY']._serialized_start=619
-  _globals['_NSRTASK_BUILDENVENTRY']._serialized_end=666
-  _globals['_NSRTASK_TESTENVENTRY']._serialized_start=668
-  _globals['_NSRTASK_TESTENVENTRY']._serialized_end=714
-  _globals['_NSRHEARTBEAT']._serialized_start=717
-  _globals['_NSRHEARTBEAT']._serialized_end=919
-  _globals['_TASKEXEC']._serialized_start=921
-  _globals['_TASKEXEC']._serialized_end=987
-  _globals['_HEARTBEAT']._serialized_start=989
-  _globals['_HEARTBEAT']._serialized_end=1066
+  _globals['_RUNNERIDENTITY']._serialized_start=59
+  _globals['_RUNNERIDENTITY']._serialized_end=148
+  _globals['_NSRTASKRESPONSE']._serialized_start=150
+  _globals['_NSRTASKRESPONSE']._serialized_end=219
+  _globals['_NSRTASK']._serialized_start=222
+  _globals['_NSRTASK']._serialized_end=791
+  _globals['_NSRTASK_LINTENVENTRY']._serialized_start=648
+  _globals['_NSRTASK_LINTENVENTRY']._serialized_end=694
+  _globals['_NSRTASK_BUILDENVENTRY']._serialized_start=696
+  _globals['_NSRTASK_BUILDENVENTRY']._serialized_end=743
+  _globals['_NSRTASK_TESTENVENTRY']._serialized_start=745
+  _globals['_NSRTASK_TESTENVENTRY']._serialized_end=791
+  _globals['_NSRHEARTBEAT']._serialized_start=794
+  _globals['_NSRHEARTBEAT']._serialized_end=996
+  _globals['_TASKQUEUESERVICE']._serialized_start=999
+  _globals['_TASKQUEUESERVICE']._serialized_end=1159
 # @@protoc_insertion_point(module_scope)

@@ -11,7 +11,6 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -20,215 +19,143 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	TaskExec_PushTask_FullMethodName = "/northstar.TaskExec/PushTask"
+	TaskQueueService_FetchNextTask_FullMethodName = "/northstar.TaskQueueService/FetchNextTask"
+	TaskQueueService_SendHeartBeat_FullMethodName = "/northstar.TaskQueueService/SendHeartBeat"
 )
 
-// TaskExecClient is the client API for TaskExec service.
+// TaskQueueServiceClient is the client API for TaskQueueService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-//
-// port 50051 | nsprovisioner sends one way task payload to nsrunner
-type TaskExecClient interface {
-	// Unary RPC: Scheduler pushes a task, runner drops it into the local pipeline queue instantly
-	PushTask(ctx context.Context, in *NSRTask, opts ...grpc.CallOption) (*emptypb.Empty, error)
+type TaskQueueServiceClient interface {
+	// nsrunner pulls tasks via this outbound endpoint
+	FetchNextTask(ctx context.Context, in *RunnerIdentity, opts ...grpc.CallOption) (*NSRTaskResponse, error)
+	// nsrunner pushes its 15-second system metrics here
+	SendHeartBeat(ctx context.Context, in *NSRHeartBeat, opts ...grpc.CallOption) (*NSRTaskResponse, error)
 }
 
-type taskExecClient struct {
+type taskQueueServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewTaskExecClient(cc grpc.ClientConnInterface) TaskExecClient {
-	return &taskExecClient{cc}
+func NewTaskQueueServiceClient(cc grpc.ClientConnInterface) TaskQueueServiceClient {
+	return &taskQueueServiceClient{cc}
 }
 
-func (c *taskExecClient) PushTask(ctx context.Context, in *NSRTask, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *taskQueueServiceClient) FetchNextTask(ctx context.Context, in *RunnerIdentity, opts ...grpc.CallOption) (*NSRTaskResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, TaskExec_PushTask_FullMethodName, in, out, cOpts...)
+	out := new(NSRTaskResponse)
+	err := c.cc.Invoke(ctx, TaskQueueService_FetchNextTask_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// TaskExecServer is the server API for TaskExec service.
-// All implementations must embed UnimplementedTaskExecServer
-// for forward compatibility.
-//
-// port 50051 | nsprovisioner sends one way task payload to nsrunner
-type TaskExecServer interface {
-	// Unary RPC: Scheduler pushes a task, runner drops it into the local pipeline queue instantly
-	PushTask(context.Context, *NSRTask) (*emptypb.Empty, error)
-	mustEmbedUnimplementedTaskExecServer()
+func (c *taskQueueServiceClient) SendHeartBeat(ctx context.Context, in *NSRHeartBeat, opts ...grpc.CallOption) (*NSRTaskResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(NSRTaskResponse)
+	err := c.cc.Invoke(ctx, TaskQueueService_SendHeartBeat_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
-// UnimplementedTaskExecServer must be embedded to have
+// TaskQueueServiceServer is the server API for TaskQueueService service.
+// All implementations must embed UnimplementedTaskQueueServiceServer
+// for forward compatibility.
+type TaskQueueServiceServer interface {
+	// nsrunner pulls tasks via this outbound endpoint
+	FetchNextTask(context.Context, *RunnerIdentity) (*NSRTaskResponse, error)
+	// nsrunner pushes its 15-second system metrics here
+	SendHeartBeat(context.Context, *NSRHeartBeat) (*NSRTaskResponse, error)
+	mustEmbedUnimplementedTaskQueueServiceServer()
+}
+
+// UnimplementedTaskQueueServiceServer must be embedded to have
 // forward compatible implementations.
 //
 // NOTE: this should be embedded by value instead of pointer to avoid a nil
 // pointer dereference when methods are called.
-type UnimplementedTaskExecServer struct{}
+type UnimplementedTaskQueueServiceServer struct{}
 
-func (UnimplementedTaskExecServer) PushTask(context.Context, *NSRTask) (*emptypb.Empty, error) {
-	return nil, status.Error(codes.Unimplemented, "method PushTask not implemented")
+func (UnimplementedTaskQueueServiceServer) FetchNextTask(context.Context, *RunnerIdentity) (*NSRTaskResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method FetchNextTask not implemented")
 }
-func (UnimplementedTaskExecServer) mustEmbedUnimplementedTaskExecServer() {}
-func (UnimplementedTaskExecServer) testEmbeddedByValue()                  {}
+func (UnimplementedTaskQueueServiceServer) SendHeartBeat(context.Context, *NSRHeartBeat) (*NSRTaskResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SendHeartBeat not implemented")
+}
+func (UnimplementedTaskQueueServiceServer) mustEmbedUnimplementedTaskQueueServiceServer() {}
+func (UnimplementedTaskQueueServiceServer) testEmbeddedByValue()                          {}
 
-// UnsafeTaskExecServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to TaskExecServer will
+// UnsafeTaskQueueServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to TaskQueueServiceServer will
 // result in compilation errors.
-type UnsafeTaskExecServer interface {
-	mustEmbedUnimplementedTaskExecServer()
+type UnsafeTaskQueueServiceServer interface {
+	mustEmbedUnimplementedTaskQueueServiceServer()
 }
 
-func RegisterTaskExecServer(s grpc.ServiceRegistrar, srv TaskExecServer) {
-	// If the following call panics, it indicates UnimplementedTaskExecServer was
+func RegisterTaskQueueServiceServer(s grpc.ServiceRegistrar, srv TaskQueueServiceServer) {
+	// If the following call panics, it indicates UnimplementedTaskQueueServiceServer was
 	// embedded by pointer and is nil.  This will cause panics if an
 	// unimplemented method is ever invoked, so we test this at initialization
 	// time to prevent it from happening at runtime later due to I/O.
 	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
 		t.testEmbeddedByValue()
 	}
-	s.RegisterService(&TaskExec_ServiceDesc, srv)
+	s.RegisterService(&TaskQueueService_ServiceDesc, srv)
 }
 
-func _TaskExec_PushTask_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(NSRTask)
+func _TaskQueueService_FetchNextTask_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RunnerIdentity)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(TaskExecServer).PushTask(ctx, in)
+		return srv.(TaskQueueServiceServer).FetchNextTask(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: TaskExec_PushTask_FullMethodName,
+		FullMethod: TaskQueueService_FetchNextTask_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TaskExecServer).PushTask(ctx, req.(*NSRTask))
+		return srv.(TaskQueueServiceServer).FetchNextTask(ctx, req.(*RunnerIdentity))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// TaskExec_ServiceDesc is the grpc.ServiceDesc for TaskExec service.
-// It's only intended for direct use with grpc.RegisterService,
-// and not to be introspected or modified (even as a copy)
-var TaskExec_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "northstar.TaskExec",
-	HandlerType: (*TaskExecServer)(nil),
-	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "PushTask",
-			Handler:    _TaskExec_PushTask_Handler,
-		},
-	},
-	Streams:  []grpc.StreamDesc{},
-	Metadata: "comms.proto",
-}
-
-const (
-	Heartbeat_SendHeartbeat_FullMethodName = "/northstar.Heartbeat/SendHeartbeat"
-)
-
-// HeartbeatClient is the client API for Heartbeat service.
-//
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-//
-// port 50052 | nsrunner sends one way heartbeat paylaods in set interval
-type HeartbeatClient interface {
-	// Unary RPC: Runner hits this every 15 seconds to stream telemetry spikes
-	SendHeartbeat(ctx context.Context, in *NSRHeartBeat, opts ...grpc.CallOption) (*emptypb.Empty, error)
-}
-
-type heartbeatClient struct {
-	cc grpc.ClientConnInterface
-}
-
-func NewHeartbeatClient(cc grpc.ClientConnInterface) HeartbeatClient {
-	return &heartbeatClient{cc}
-}
-
-func (c *heartbeatClient) SendHeartbeat(ctx context.Context, in *NSRHeartBeat, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, Heartbeat_SendHeartbeat_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// HeartbeatServer is the server API for Heartbeat service.
-// All implementations must embed UnimplementedHeartbeatServer
-// for forward compatibility.
-//
-// port 50052 | nsrunner sends one way heartbeat paylaods in set interval
-type HeartbeatServer interface {
-	// Unary RPC: Runner hits this every 15 seconds to stream telemetry spikes
-	SendHeartbeat(context.Context, *NSRHeartBeat) (*emptypb.Empty, error)
-	mustEmbedUnimplementedHeartbeatServer()
-}
-
-// UnimplementedHeartbeatServer must be embedded to have
-// forward compatible implementations.
-//
-// NOTE: this should be embedded by value instead of pointer to avoid a nil
-// pointer dereference when methods are called.
-type UnimplementedHeartbeatServer struct{}
-
-func (UnimplementedHeartbeatServer) SendHeartbeat(context.Context, *NSRHeartBeat) (*emptypb.Empty, error) {
-	return nil, status.Error(codes.Unimplemented, "method SendHeartbeat not implemented")
-}
-func (UnimplementedHeartbeatServer) mustEmbedUnimplementedHeartbeatServer() {}
-func (UnimplementedHeartbeatServer) testEmbeddedByValue()                   {}
-
-// UnsafeHeartbeatServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to HeartbeatServer will
-// result in compilation errors.
-type UnsafeHeartbeatServer interface {
-	mustEmbedUnimplementedHeartbeatServer()
-}
-
-func RegisterHeartbeatServer(s grpc.ServiceRegistrar, srv HeartbeatServer) {
-	// If the following call panics, it indicates UnimplementedHeartbeatServer was
-	// embedded by pointer and is nil.  This will cause panics if an
-	// unimplemented method is ever invoked, so we test this at initialization
-	// time to prevent it from happening at runtime later due to I/O.
-	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
-		t.testEmbeddedByValue()
-	}
-	s.RegisterService(&Heartbeat_ServiceDesc, srv)
-}
-
-func _Heartbeat_SendHeartbeat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _TaskQueueService_SendHeartBeat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(NSRHeartBeat)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(HeartbeatServer).SendHeartbeat(ctx, in)
+		return srv.(TaskQueueServiceServer).SendHeartBeat(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Heartbeat_SendHeartbeat_FullMethodName,
+		FullMethod: TaskQueueService_SendHeartBeat_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(HeartbeatServer).SendHeartbeat(ctx, req.(*NSRHeartBeat))
+		return srv.(TaskQueueServiceServer).SendHeartBeat(ctx, req.(*NSRHeartBeat))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// Heartbeat_ServiceDesc is the grpc.ServiceDesc for Heartbeat service.
+// TaskQueueService_ServiceDesc is the grpc.ServiceDesc for TaskQueueService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var Heartbeat_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "northstar.Heartbeat",
-	HandlerType: (*HeartbeatServer)(nil),
+var TaskQueueService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "northstar.TaskQueueService",
+	HandlerType: (*TaskQueueServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "SendHeartbeat",
-			Handler:    _Heartbeat_SendHeartbeat_Handler,
+			MethodName: "FetchNextTask",
+			Handler:    _TaskQueueService_FetchNextTask_Handler,
+		},
+		{
+			MethodName: "SendHeartBeat",
+			Handler:    _TaskQueueService_SendHeartBeat_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

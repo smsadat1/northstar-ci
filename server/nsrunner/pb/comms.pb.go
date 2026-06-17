@@ -9,7 +9,6 @@ package pb
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
@@ -23,11 +22,128 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type NSRTask struct {
+type RunnerIdentity struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	OwnerId       string                 `protobuf:"bytes,1,opt,name=owner_id,json=ownerId,proto3" json:"owner_id,omitempty"`
-	Region        string                 `protobuf:"bytes,2,opt,name=region,proto3" json:"region,omitempty"`
-	ContainerId   string                 `protobuf:"bytes,3,opt,name=container_id,json=containerId,proto3" json:"container_id,omitempty"`
+	RunnerId      string                 `protobuf:"bytes,2,opt,name=runner_id,json=runnerId,proto3" json:"runner_id,omitempty"`
+	RunnerIp      string                 `protobuf:"bytes,3,opt,name=runner_ip,json=runnerIp,proto3" json:"runner_ip,omitempty"`
+	Version       string                 `protobuf:"bytes,4,opt,name=version,proto3" json:"version,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RunnerIdentity) Reset() {
+	*x = RunnerIdentity{}
+	mi := &file_comms_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RunnerIdentity) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RunnerIdentity) ProtoMessage() {}
+
+func (x *RunnerIdentity) ProtoReflect() protoreflect.Message {
+	mi := &file_comms_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RunnerIdentity.ProtoReflect.Descriptor instead.
+func (*RunnerIdentity) Descriptor() ([]byte, []int) {
+	return file_comms_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *RunnerIdentity) GetOwnerId() string {
+	if x != nil {
+		return x.OwnerId
+	}
+	return ""
+}
+
+func (x *RunnerIdentity) GetRunnerId() string {
+	if x != nil {
+		return x.RunnerId
+	}
+	return ""
+}
+
+func (x *RunnerIdentity) GetRunnerIp() string {
+	if x != nil {
+		return x.RunnerIp
+	}
+	return ""
+}
+
+func (x *RunnerIdentity) GetVersion() string {
+	if x != nil {
+		return x.Version
+	}
+	return ""
+}
+
+type NSRTaskResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	HasTask       bool                   `protobuf:"varint,1,opt,name=has_task,json=hasTask,proto3" json:"has_task,omitempty"`
+	Task          *NSRTask               `protobuf:"bytes,2,opt,name=task,proto3" json:"task,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NSRTaskResponse) Reset() {
+	*x = NSRTaskResponse{}
+	mi := &file_comms_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NSRTaskResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NSRTaskResponse) ProtoMessage() {}
+
+func (x *NSRTaskResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_comms_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NSRTaskResponse.ProtoReflect.Descriptor instead.
+func (*NSRTaskResponse) Descriptor() ([]byte, []int) {
+	return file_comms_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *NSRTaskResponse) GetHasTask() bool {
+	if x != nil {
+		return x.HasTask
+	}
+	return false
+}
+
+func (x *NSRTaskResponse) GetTask() *NSRTask {
+	if x != nil {
+		return x.Task
+	}
+	return nil
+}
+
+type NSRTask struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
 	S3Url         string                 `protobuf:"bytes,4,opt,name=s3url,proto3" json:"s3url,omitempty"`
 	TimeoutSec    uint32                 `protobuf:"varint,5,opt,name=timeout_sec,json=timeoutSec,proto3" json:"timeout_sec,omitempty"`
 	MemoryLimitMb uint64                 `protobuf:"varint,6,opt,name=memory_limit_mb,json=memoryLimitMb,proto3" json:"memory_limit_mb,omitempty"`
@@ -49,7 +165,7 @@ type NSRTask struct {
 
 func (x *NSRTask) Reset() {
 	*x = NSRTask{}
-	mi := &file_comms_proto_msgTypes[0]
+	mi := &file_comms_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -61,7 +177,7 @@ func (x *NSRTask) String() string {
 func (*NSRTask) ProtoMessage() {}
 
 func (x *NSRTask) ProtoReflect() protoreflect.Message {
-	mi := &file_comms_proto_msgTypes[0]
+	mi := &file_comms_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -74,28 +190,7 @@ func (x *NSRTask) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NSRTask.ProtoReflect.Descriptor instead.
 func (*NSRTask) Descriptor() ([]byte, []int) {
-	return file_comms_proto_rawDescGZIP(), []int{0}
-}
-
-func (x *NSRTask) GetOwnerId() string {
-	if x != nil {
-		return x.OwnerId
-	}
-	return ""
-}
-
-func (x *NSRTask) GetRegion() string {
-	if x != nil {
-		return x.Region
-	}
-	return ""
-}
-
-func (x *NSRTask) GetContainerId() string {
-	if x != nil {
-		return x.ContainerId
-	}
-	return ""
+	return file_comms_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *NSRTask) GetS3Url() string {
@@ -222,7 +317,7 @@ type NSRHeartBeat struct {
 
 func (x *NSRHeartBeat) Reset() {
 	*x = NSRHeartBeat{}
-	mi := &file_comms_proto_msgTypes[1]
+	mi := &file_comms_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -234,7 +329,7 @@ func (x *NSRHeartBeat) String() string {
 func (*NSRHeartBeat) ProtoMessage() {}
 
 func (x *NSRHeartBeat) ProtoReflect() protoreflect.Message {
-	mi := &file_comms_proto_msgTypes[1]
+	mi := &file_comms_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -247,7 +342,7 @@ func (x *NSRHeartBeat) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NSRHeartBeat.ProtoReflect.Descriptor instead.
 func (*NSRHeartBeat) Descriptor() ([]byte, []int) {
-	return file_comms_proto_rawDescGZIP(), []int{1}
+	return file_comms_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *NSRHeartBeat) GetOwnerId() string {
@@ -310,11 +405,16 @@ var File_comms_proto protoreflect.FileDescriptor
 
 const file_comms_proto_rawDesc = "" +
 	"\n" +
-	"\vcomms.proto\x12\tnorthstar\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xe6\x06\n" +
-	"\aNSRTask\x12\x19\n" +
-	"\bowner_id\x18\x01 \x01(\tR\aownerId\x12\x16\n" +
-	"\x06region\x18\x02 \x01(\tR\x06region\x12!\n" +
-	"\fcontainer_id\x18\x03 \x01(\tR\vcontainerId\x12\x14\n" +
+	"\vcomms.proto\x12\tnorthstar\x1a\x1fgoogle/protobuf/timestamp.proto\"\x7f\n" +
+	"\x0eRunnerIdentity\x12\x19\n" +
+	"\bowner_id\x18\x01 \x01(\tR\aownerId\x12\x1b\n" +
+	"\trunner_id\x18\x02 \x01(\tR\brunnerId\x12\x1b\n" +
+	"\trunner_ip\x18\x03 \x01(\tR\brunnerIp\x12\x18\n" +
+	"\aversion\x18\x04 \x01(\tR\aversion\"T\n" +
+	"\x0fNSRTaskResponse\x12\x19\n" +
+	"\bhas_task\x18\x01 \x01(\bR\ahasTask\x12&\n" +
+	"\x04task\x18\x02 \x01(\v2\x12.northstar.NSRTaskR\x04task\"\x90\x06\n" +
+	"\aNSRTask\x12\x14\n" +
 	"\x05s3url\x18\x04 \x01(\tR\x05s3url\x12\x1f\n" +
 	"\vtimeout_sec\x18\x05 \x01(\rR\n" +
 	"timeoutSec\x12&\n" +
@@ -352,11 +452,10 @@ const file_comms_proto_rawDesc = "" +
 	"\vmem_percent\x18\x06 \x01(\x01R\n" +
 	"memPercent\x12!\n" +
 	"\fdisk_percent\x18\a \x01(\x01R\vdiskPercent\x12A\n" +
-	"\x0eheartbeat_time\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\rheartbeatTime2B\n" +
-	"\bTaskExec\x126\n" +
-	"\bPushTask\x12\x12.northstar.NSRTask\x1a\x16.google.protobuf.Empty2M\n" +
-	"\tHeartbeat\x12@\n" +
-	"\rSendHeartbeat\x12\x17.northstar.NSRHeartBeat\x1a\x16.google.protobuf.EmptyB\x06Z\x04./pbb\x06proto3"
+	"\x0eheartbeat_time\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\rheartbeatTime2\xa0\x01\n" +
+	"\x10TaskQueueService\x12F\n" +
+	"\rFetchNextTask\x12\x19.northstar.RunnerIdentity\x1a\x1a.northstar.NSRTaskResponse\x12D\n" +
+	"\rSendHeartBeat\x12\x17.northstar.NSRHeartBeat\x1a\x1a.northstar.NSRTaskResponseB\x06Z\x04./pbb\x06proto3"
 
 var (
 	file_comms_proto_rawDescOnce sync.Once
@@ -370,30 +469,32 @@ func file_comms_proto_rawDescGZIP() []byte {
 	return file_comms_proto_rawDescData
 }
 
-var file_comms_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_comms_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_comms_proto_goTypes = []any{
-	(*NSRTask)(nil),               // 0: northstar.NSRTask
-	(*NSRHeartBeat)(nil),          // 1: northstar.NSRHeartBeat
-	nil,                           // 2: northstar.NSRTask.LintEnvEntry
-	nil,                           // 3: northstar.NSRTask.BuildEnvEntry
-	nil,                           // 4: northstar.NSRTask.TestEnvEntry
-	(*timestamppb.Timestamp)(nil), // 5: google.protobuf.Timestamp
-	(*emptypb.Empty)(nil),         // 6: google.protobuf.Empty
+	(*RunnerIdentity)(nil),        // 0: northstar.RunnerIdentity
+	(*NSRTaskResponse)(nil),       // 1: northstar.NSRTaskResponse
+	(*NSRTask)(nil),               // 2: northstar.NSRTask
+	(*NSRHeartBeat)(nil),          // 3: northstar.NSRHeartBeat
+	nil,                           // 4: northstar.NSRTask.LintEnvEntry
+	nil,                           // 5: northstar.NSRTask.BuildEnvEntry
+	nil,                           // 6: northstar.NSRTask.TestEnvEntry
+	(*timestamppb.Timestamp)(nil), // 7: google.protobuf.Timestamp
 }
 var file_comms_proto_depIdxs = []int32{
-	2, // 0: northstar.NSRTask.lint_env:type_name -> northstar.NSRTask.LintEnvEntry
-	3, // 1: northstar.NSRTask.build_env:type_name -> northstar.NSRTask.BuildEnvEntry
-	4, // 2: northstar.NSRTask.test_env:type_name -> northstar.NSRTask.TestEnvEntry
-	5, // 3: northstar.NSRHeartBeat.heartbeat_time:type_name -> google.protobuf.Timestamp
-	0, // 4: northstar.TaskExec.PushTask:input_type -> northstar.NSRTask
-	1, // 5: northstar.Heartbeat.SendHeartbeat:input_type -> northstar.NSRHeartBeat
-	6, // 6: northstar.TaskExec.PushTask:output_type -> google.protobuf.Empty
-	6, // 7: northstar.Heartbeat.SendHeartbeat:output_type -> google.protobuf.Empty
-	6, // [6:8] is the sub-list for method output_type
-	4, // [4:6] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	2, // 0: northstar.NSRTaskResponse.task:type_name -> northstar.NSRTask
+	4, // 1: northstar.NSRTask.lint_env:type_name -> northstar.NSRTask.LintEnvEntry
+	5, // 2: northstar.NSRTask.build_env:type_name -> northstar.NSRTask.BuildEnvEntry
+	6, // 3: northstar.NSRTask.test_env:type_name -> northstar.NSRTask.TestEnvEntry
+	7, // 4: northstar.NSRHeartBeat.heartbeat_time:type_name -> google.protobuf.Timestamp
+	0, // 5: northstar.TaskQueueService.FetchNextTask:input_type -> northstar.RunnerIdentity
+	3, // 6: northstar.TaskQueueService.SendHeartBeat:input_type -> northstar.NSRHeartBeat
+	1, // 7: northstar.TaskQueueService.FetchNextTask:output_type -> northstar.NSRTaskResponse
+	1, // 8: northstar.TaskQueueService.SendHeartBeat:output_type -> northstar.NSRTaskResponse
+	7, // [7:9] is the sub-list for method output_type
+	5, // [5:7] is the sub-list for method input_type
+	5, // [5:5] is the sub-list for extension type_name
+	5, // [5:5] is the sub-list for extension extendee
+	0, // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_comms_proto_init() }
@@ -407,9 +508,9 @@ func file_comms_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_comms_proto_rawDesc), len(file_comms_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   5,
+			NumMessages:   7,
 			NumExtensions: 0,
-			NumServices:   2,
+			NumServices:   1,
 		},
 		GoTypes:           file_comms_proto_goTypes,
 		DependencyIndexes: file_comms_proto_depIdxs,

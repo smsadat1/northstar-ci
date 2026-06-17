@@ -3,8 +3,7 @@
 import grpc
 import warnings
 
-import comms_pb2 as comms__pb2
-from google.protobuf import empty_pb2 as google_dot_protobuf_dot_empty__pb2
+from . import comms_pb2 as comms__pb2
 
 GRPC_GENERATED_VERSION = '1.80.0'
 GRPC_VERSION = grpc.__version__
@@ -26,9 +25,8 @@ if _version_not_supported:
     )
 
 
-class TaskExecStub(object):
-    """port 50051 | nsprovisioner sends one way task payload to nsrunner
-    """
+class TaskQueueServiceStub(object):
+    """Missing associated documentation comment in .proto file."""
 
     def __init__(self, channel):
         """Constructor.
@@ -36,46 +34,61 @@ class TaskExecStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.PushTask = channel.unary_unary(
-                '/northstar.TaskExec/PushTask',
-                request_serializer=comms__pb2.NSRTask.SerializeToString,
-                response_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
+        self.FetchNextTask = channel.unary_unary(
+                '/northstar.TaskQueueService/FetchNextTask',
+                request_serializer=comms__pb2.RunnerIdentity.SerializeToString,
+                response_deserializer=comms__pb2.NSRTaskResponse.FromString,
+                _registered_method=True)
+        self.SendHeartBeat = channel.unary_unary(
+                '/northstar.TaskQueueService/SendHeartBeat',
+                request_serializer=comms__pb2.NSRHeartBeat.SerializeToString,
+                response_deserializer=comms__pb2.NSRTaskResponse.FromString,
                 _registered_method=True)
 
 
-class TaskExecServicer(object):
-    """port 50051 | nsprovisioner sends one way task payload to nsrunner
-    """
+class TaskQueueServiceServicer(object):
+    """Missing associated documentation comment in .proto file."""
 
-    def PushTask(self, request, context):
-        """Unary RPC: Scheduler pushes a task, runner drops it into the local pipeline queue instantly
+    def FetchNextTask(self, request, context):
+        """nsrunner pulls tasks via this outbound endpoint
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def SendHeartBeat(self, request, context):
+        """nsrunner pushes its 15-second system metrics here
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
 
-def add_TaskExecServicer_to_server(servicer, server):
+def add_TaskQueueServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'PushTask': grpc.unary_unary_rpc_method_handler(
-                    servicer.PushTask,
-                    request_deserializer=comms__pb2.NSRTask.FromString,
-                    response_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+            'FetchNextTask': grpc.unary_unary_rpc_method_handler(
+                    servicer.FetchNextTask,
+                    request_deserializer=comms__pb2.RunnerIdentity.FromString,
+                    response_serializer=comms__pb2.NSRTaskResponse.SerializeToString,
+            ),
+            'SendHeartBeat': grpc.unary_unary_rpc_method_handler(
+                    servicer.SendHeartBeat,
+                    request_deserializer=comms__pb2.NSRHeartBeat.FromString,
+                    response_serializer=comms__pb2.NSRTaskResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'northstar.TaskExec', rpc_method_handlers)
+            'northstar.TaskQueueService', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
-    server.add_registered_method_handlers('northstar.TaskExec', rpc_method_handlers)
+    server.add_registered_method_handlers('northstar.TaskQueueService', rpc_method_handlers)
 
 
  # This class is part of an EXPERIMENTAL API.
-class TaskExec(object):
-    """port 50051 | nsprovisioner sends one way task payload to nsrunner
-    """
+class TaskQueueService(object):
+    """Missing associated documentation comment in .proto file."""
 
     @staticmethod
-    def PushTask(request,
+    def FetchNextTask(request,
             target,
             options=(),
             channel_credentials=None,
@@ -88,9 +101,9 @@ class TaskExec(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/northstar.TaskExec/PushTask',
-            comms__pb2.NSRTask.SerializeToString,
-            google_dot_protobuf_dot_empty__pb2.Empty.FromString,
+            '/northstar.TaskQueueService/FetchNextTask',
+            comms__pb2.RunnerIdentity.SerializeToString,
+            comms__pb2.NSRTaskResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -101,57 +114,8 @@ class TaskExec(object):
             metadata,
             _registered_method=True)
 
-
-class HeartbeatStub(object):
-    """port 50052 | nsrunner sends one way heartbeat paylaods in set interval
-    """
-
-    def __init__(self, channel):
-        """Constructor.
-
-        Args:
-            channel: A grpc.Channel.
-        """
-        self.SendHeartbeat = channel.unary_unary(
-                '/northstar.Heartbeat/SendHeartbeat',
-                request_serializer=comms__pb2.NSRHeartBeat.SerializeToString,
-                response_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
-                _registered_method=True)
-
-
-class HeartbeatServicer(object):
-    """port 50052 | nsrunner sends one way heartbeat paylaods in set interval
-    """
-
-    def SendHeartbeat(self, request, context):
-        """Unary RPC: Runner hits this every 15 seconds to stream telemetry spikes
-        """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-
-def add_HeartbeatServicer_to_server(servicer, server):
-    rpc_method_handlers = {
-            'SendHeartbeat': grpc.unary_unary_rpc_method_handler(
-                    servicer.SendHeartbeat,
-                    request_deserializer=comms__pb2.NSRHeartBeat.FromString,
-                    response_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
-            ),
-    }
-    generic_handler = grpc.method_handlers_generic_handler(
-            'northstar.Heartbeat', rpc_method_handlers)
-    server.add_generic_rpc_handlers((generic_handler,))
-    server.add_registered_method_handlers('northstar.Heartbeat', rpc_method_handlers)
-
-
- # This class is part of an EXPERIMENTAL API.
-class Heartbeat(object):
-    """port 50052 | nsrunner sends one way heartbeat paylaods in set interval
-    """
-
     @staticmethod
-    def SendHeartbeat(request,
+    def SendHeartBeat(request,
             target,
             options=(),
             channel_credentials=None,
@@ -164,9 +128,9 @@ class Heartbeat(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/northstar.Heartbeat/SendHeartbeat',
+            '/northstar.TaskQueueService/SendHeartBeat',
             comms__pb2.NSRHeartBeat.SerializeToString,
-            google_dot_protobuf_dot_empty__pb2.Empty.FromString,
+            comms__pb2.NSRTaskResponse.FromString,
             options,
             channel_credentials,
             insecure,
