@@ -1,4 +1,6 @@
-FROM python:3.12-slim
+FROM ns-api:latest
+
+# FROM python:3.12-slim
 WORKDIR /app
 
 # install system dependencies for redis and supervisor
@@ -12,8 +14,7 @@ COPY requirements.txt /app/requirements.txt
 # copy multi-process supervisor engine configuration
 COPY nsprovisioner/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
+# RUN pip install -r requirements.txt --timeout=1000
 
 ENV PYTHONPATH="/app"
 ENV PYTHONUNBUFFERED=1

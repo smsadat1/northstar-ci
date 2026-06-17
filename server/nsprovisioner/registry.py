@@ -9,44 +9,44 @@ from scheduler import get_nsrunner_instance
 class NSRRT_Schema(BaseModel):
     
     # identity
+    owner_id: str
     runner_id: str
-    runner_ip: str
-    region: str 
+    runner_ip: str 
+    region: str
 
     # system
-    current_job: str
-    queue_len: int
-    ema_velocity: float
-    backlog_scope: float
+    cpu_percent: float
+    mem_percent: float
+    disk_percent: float
 
     # control plane metadata
-    last_heartbeat: datetime = Field(default_factory=datetime.now(timezone.utc))
-    is_healthy: bool = True
+    last_seen: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class NSRRT_redis:
     def __init__(self):
         self.r = sync_r
 
-    def upsert_nsrrt(self, runner_id: str, entry: NSRRT_Schema):
-        key = f'nsrrt:runner:{runner_id}'
+    def upsert_nsrrt(self, owner_id: str,  entry: NSRRT_Schema):
+        key = f'nsrrt:{owner_id}'
         
         self.r.hset(key, mapping={
+            "owner_id": entry.owner_id,
             "runner_id": entry.runner_id,
+            "runner_ip": entry.runner_ip,
             "region": entry.region,
-            "queue_len": entry.queue_len,
-            "ema_velocity": entry.ema_velocity,
-            "backlog_scope": entry.backlog_scope,
-            "last_heartbeat": entry.last_heartbeat.isoformat(),
-            "is_healthy": "1" if entry.is_healthy else "0",
-            "assigned_job_id": entry.current_job
+            
+            "cpu_percent": entry.cpu_percent,
+            "mem_percent": entry.mem_percent,
+            "disk_percent": entry.disk_percent,
+
+            "last_heartbeat": entry.last_seen,
         })
         # auto expires if nsrunner instance doesn't ping for more than a minute
         self.r.expire(key, 60)
 
-    def get_healthy_runner(self, region: str):
-        runner_id = get_nsrunner_instance(region)
+    def get_associated_runner(self, owner_id: str):
+        runner_id = get_nsrunner_instance(owner_id)
         return runner_id
-    
 
 nsrrt = NSRRT_redis()
