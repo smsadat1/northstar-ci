@@ -1,16 +1,37 @@
 // generate deployment.sh based on user defined deployment definition
 
-package main
+package deployment
 
 import (
+	"bytes"
 	"fmt"
+	"html/template"
 	"os"
 	"os/exec"
 )
 
-func main() {
+const bashTemplates = `
+#!/bin/sh
+# Generated automatically by Northstar CI
+set -e
 
-	generateDeploysh()
+# env vars
+{{- range $key, $value := .DeployEnv}}
+export {{$key}} = "{{$value}}"
+{{- end}}
+
+# commands
+{{ .Command }}
+
+# steps
+{{- range .Steps }}
+{{ . }}
+{{- end }}
+`
+
+func deploy(instructions DeployInstructionSet) {
+
+	generateDeploysh(instructions, "./deploy.sh")
 	cmd := exec.Command("bash", "./deploy.sh")
 
 	cmd.Stdout = os.Stdout
@@ -23,6 +44,23 @@ func main() {
 	}
 }
 
-func generateDeploysh() {
+func generateDeploysh(instructions DeployInstructionSet, outputPath string) error {
+	tmpl, err := template.New("deployScript").Parse(bashTemplates)
+	if err != nil {
+		return err
+	}
 
+	var buffer bytes.Buffer
+	err = tmpl.Execute(&buffer, instructions)
+	if err != nil {
+		return err
+	}
+
+	// permission code 0755 to be auto executable
+	err = os.WriteFile(outputPath, buffer.Bytes(), 0755)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
