@@ -6,6 +6,69 @@ Northstar CI is a lightweight self-hosted CI/CD platform designed for developers
 
 ---
 
+## Table of Contents
+* [Quick Start](#quick-start)
+* [Overview](#overview)
+* [Architecture](#architecture)
+* [Core Concepts](#core-concepts)
+* [Features](#features)
+* [Project Status](#project-status)
+* [License](#license)
+
+---
+
+## Quick Start
+
+### 1. Create an Account
+
+Visit **nsci.dev** and sign in using:
+
+* GitHub
+* GitLab
+* Google
+
+After registration, generate and copy your API key.
+
+> API keys are shown only once. Store them securely.
+
+### 2. Install the CLI
+
+```bash
+curl -O https://nsci.dev/nssetup.sh
+chmod +x nssetup.sh
+./nssetup.sh
+```
+
+### 3. Authenticate
+
+```bash
+nsci login nsk123_xxxxxxxxxxxxxxxxx
+```
+
+### 4. Verify Installation
+
+```bash
+nsci version
+```
+
+### 5. Create a Pipeline
+
+Create a `.northstar/ci.yml` file in your repository root.
+
+See [Pipeline Definition](#pipeline-definition) for the complete YAML specification.
+
+### 6. Run Your First Pipeline
+
+```bash
+nsci run .northstar/ci.yml
+```
+
+For advanced CLI usage, runner management, deployment workflows, and fully self-hosted deployments, see:
+
+→ `docs/INSTALLATION.md`
+
+---
+
 ## Overview
 
 Northstar CI focuses on distributed execution, simple pipeline definitions, and a Bring Your Own Runner (BYOR) philosophy.
@@ -94,12 +157,11 @@ Runner responsibilities:
 
 Northstar pipelines are defined using YAML.
 
-Example:
+Example (repository):
 
 ```yaml
 version: "0.0.1a"
 
-target_fi
 on:
   push:
     branch: main
@@ -142,6 +204,52 @@ jobs:
 
 ```
 
+Example(CLI):
+```yaml
+version: "0.0.1a"
+
+target: path/to/target
+
+jobs:
+
+  limits:
+    timeout_seconds: 10
+    memory_mb: 256
+    cpu_count: 2
+
+  stages:
+
+    - lint:
+        runtime: python-3.12
+        command: |
+          python -m py_compile hudai.py
+
+    - build:
+        runtime: python-3.12
+        command: |
+          cp hudai.py /tmp/build/
+
+    - test:
+        runtime: python-3.12
+        command: |
+          python /tmp/build/hudai.py
+
+    - deploy:
+        runtime: alpine
+        environment:
+          SSH_HOST: "deploy.example.internal"
+          SSH_USER: "deployer"
+          SSH_PORT: "22"
+        command: |
+          echo "Deploying build to {environment}"
+        steps:
+          - scp -r /tmp/build deployer@deploy.example.internal:/opt/northstar/app
+          - ssh deployer@deploy.example.internal "cd /opt/northstar/app && docker compose up -d"
+
+```
+
+
+
 ## Features
 - YAML-based pipelines
 - Matrix builds
@@ -168,13 +276,6 @@ Current focus areas:
 
 The architecture and APIs may change before the first stable release.
 
-
-## Installation
-### Control Plane
-Instructions coming soon.
-
-### Runner
-Instructions coming soon.
 
 ## License
 
