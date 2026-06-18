@@ -1,5 +1,6 @@
 // get system data
-package main
+
+package monitor
 
 import (
 	"bufio"
@@ -12,7 +13,7 @@ import (
 	"golang.org/x/sys/unix"
 )
 
-func getHeartBeat() NSRHeartBeat {
+func GetHeartBeat() (float64, float64, float64) {
 
 	const interval uint8 = 15
 	tick := time.NewTicker(time.Duration(interval) * time.Second)
@@ -40,10 +41,10 @@ func getHeartBeat() NSRHeartBeat {
 
 		memTotal, memavail, err := getMemoryUsage()
 		var memUsed uint64
-		var memPercent float32
+		var memPercent float64
 		if err == nil {
 			memUsed = memTotal - memavail
-			memPercent = (float32(memUsed) / float32(memTotal)) * 100
+			memPercent = (float64(memUsed) / float64(memTotal)) * 100
 		} else {
 			fmt.Printf("Error reading memory %v\n", err)
 			break
@@ -51,10 +52,10 @@ func getHeartBeat() NSRHeartBeat {
 
 		diskTotal, diskAvail, err := getDiskUsage("/")
 		var diskUsed uint64
-		var diskPercent float32
+		var diskPercent float64
 		if err == nil {
 			diskUsed = diskTotal - diskAvail
-			diskPercent = (float32(diskUsed) / float32(diskTotal)) * 100
+			diskPercent = (float64(diskUsed) / float64(diskTotal)) * 100
 		} else {
 			fmt.Printf("Error reading disk %v\n", err)
 			break
@@ -68,16 +69,10 @@ func getHeartBeat() NSRHeartBeat {
 		// 	diskPercent, diskUsed/1024/1024/1024, diskTotal/1024/1024/1024,
 		// )
 
-		nsrHeartBeat := NSRHeartBeat{
-			cpuPercent:  cpuPercent,
-			memPercent:  memPercent,
-			diskPercent: diskPercent,
-		}
-
-		return nsrHeartBeat
+		return cpuPercent, memPercent, diskPercent
 	}
 
-	return NSRHeartBeat{}
+	return 0.0, 0.0, 0.0
 }
 
 func getCPUSample() (CPUSample, error) {

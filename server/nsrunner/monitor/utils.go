@@ -1,4 +1,4 @@
-package main
+package monitor
 
 type CPUSample struct {
 	User, Nice, System, Idle, Iowait, Irq, Softirq, Steal uint64
