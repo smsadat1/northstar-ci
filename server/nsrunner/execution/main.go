@@ -1,6 +1,6 @@
 // change file name to taskline.go later
 
-package main
+package execution
 
 import "log"
 
@@ -110,49 +110,50 @@ func taskline(nsris NSRInstructionSet) {
 	nsrLogger("All stages done")
 }
 
-func main() {
+func NSRExec(nsris NSRInstructionSet) error {
 	// disable default timestamp
 	log.SetFlags(0)
 
 	// define the environment maps explicitly
-	lintEnvironment := map[string]string{
-		"FORCE_COLOR": "1", // Keep our CLI logs structured for UI rendering
-	}
+	// lintEnvironment := map[string]string{
+	// 	"FORCE_COLOR": "1", // Keep our CLI logs structured for UI rendering
+	// }
 
-	buildEnvironment := map[string]string{
-		"PIP_CACHE_DIR":                 "/workspace/.pip-cache",
-		"PIP_DISABLE_PIP_VERSION_CHECK": "1",
-	}
+	// buildEnvironment := map[string]string{
+	// 	"PIP_CACHE_DIR":                 "/workspace/.pip-cache",
+	// 	"PIP_DISABLE_PIP_VERSION_CHECK": "1",
+	// }
 
-	testEnvironment := map[string]string{
-		"APP_ENV":      "ci",
-		"DATABASE_URL": "sqlite:///:memory:", // Isolated in-memory DB for tests
-		"DEBUG":        "False",
-	}
+	// testEnvironment := map[string]string{
+	// 	"APP_ENV":      "ci",
+	// 	"DATABASE_URL": "sqlite:///:memory:", // Isolated in-memory DB for tests
+	// 	"DEBUG":        "False",
+	// }
 
-	nsris := NSRInstructionSet{
-		containerID: "ci-pipeline-job-2026",
-		filepath:    "/tmp/nsci",
+	// nsris := NSRInstructionSet{
+	// 	containerID: "ci-pipeline-job-2026",
+	// 	filepath:    "/tmp/nsci",
 
-		TimeoutSec:    120,
-		MemoryLimitMB: 512,
-		MaxStdoutKB:   1024,
-		CpuShares:     3,
-		DiskLimitMB:   200,
+	// 	TimeoutSec:    120,
+	// 	MemoryLimitMB: 512,
+	// 	MaxStdoutKB:   1024,
+	// 	CpuShares:     3,
+	// 	DiskLimitMB:   200,
 
-		LintRuntime: "python-3.12",
-		LintCommand: "pip install --quiet flake8 && cd /mnt && flake8 .",
-		// LintCommand: "ls -la / && ls -la /tmp",
-		LintEnv: lintEnvironment,
+	// 	LintRuntime: "python-3.12",
+	// 	LintCommand: "pip install --quiet flake8 && cd /mnt && flake8 .",
+	// 	// LintCommand: "ls -la / && ls -la /tmp",
+	// 	LintEnv: lintEnvironment,
 
-		BuildRuntime: "python-3.12",
-		BuildCommand: "if [ -f /mnt/requirements.txt ]; then pip install -r /mnt/requirements.txt; fi",
-		BuildEnv:     buildEnvironment,
+	// 	BuildRuntime: "python-3.12",
+	// 	BuildCommand: "if [ -f /mnt/requirements.txt ]; then pip install -r /mnt/requirements.txt; fi",
+	// 	BuildEnv:     buildEnvironment,
 
-		TestRuntime: "python-3.12",
-		TestCommand: "pip install pytest && cd /mnt/tests && pytest -v",
-		TestEnv:     testEnvironment,
-	}
+	// 	TestRuntime: "python-3.12",
+	// 	TestCommand: "pip install pytest && cd /mnt/tests && pytest -v",
+	// 	TestEnv:     testEnvironment,
+	// }
 
 	taskline(nsris)
+	return nil
 }

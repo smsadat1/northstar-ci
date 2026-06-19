@@ -9,6 +9,8 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	dep "northstar/deployment"
+	exc "northstar/execution"
 	hb "northstar/monitor"
 	pb "northstar/pb"
 )
@@ -45,7 +47,49 @@ func main() {
 
 		if taskResponse.HasTask && taskResponse.Task != nil {
 			log.Printf("[Worker Pipeline] Task detected. S3 Target: %s", taskResponse.Task.S3Url)
-			// pass task downstream after dividing into execution and deployment
+
+			// pass execution instruction downstream
+			nsrcontainerrules := exc.NSRInstructionSet{
+				S3url: taskResponse.Task.S3Url,
+
+				TimeoutSec:    time.Duration(taskResponse.Task.TimeoutSec),
+				MemoryLimitMB: taskResponse.Task.MemoryLimitMb,
+				MaxStdoutKB:   64000,
+				CpuShares:     taskResponse.Task.CpuShares,
+				DiskLimitMB:   256,
+
+				LintRuntime: taskResponse.Task.LintRuntime,
+				LintCommand: taskResponse.Task.LintCommand,
+				LintEnv:     taskResponse.Task.LintEnv,
+
+				BuildRuntime: taskResponse.Task.BuildRuntime,
+				BuildCommand: taskResponse.Task.BuildCommand,
+				BuildEnv:     taskResponse.Task.BuildEnv,
+
+				TestRuntime: taskResponse.Task.TestRuntime,
+				TestCommand: taskResponse.Task.TestCommand,
+				TestEnv:     taskResponse.Task.TestEnv,
+			}
+			err = exc.NSRExec(nsrcontainerrules)
+			if err != nil {
+				log.Printf("Execution failed %v\n", err)
+			}
+		}
+
+		if taskResponse.HasDeploy && taskResponse.Deploy != nil {
+			log.Println("[Worker Pipeline] Deployment instruction detected")
+
+			// pass deployment definition downstream
+			nsrdeploydefs := dep.DeployInstructionSet{
+				DeployRuntime: taskResponse.Deploy.DeployRuntime,
+				DeployEnv:     taskResponse.Deploy.DeployEnv,
+				Command:       taskResponse.Deploy.Command,
+				Steps:         taskResponse.Deploy.Steps,
+			}
+			err = dep.NSRdeploy(nsrdeploydefs)
+			if err != nil {
+				log.Printf("Deployment failed %v\n", err)
+			}
 		}
 
 		CpuPercent, MemPercent, DiskPercent := hb.GetHeartBeat()

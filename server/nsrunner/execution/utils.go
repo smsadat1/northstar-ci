@@ -1,4 +1,4 @@
-package main
+package execution
 
 import (
 	"bufio"
@@ -45,8 +45,7 @@ var imagemap = map[string]string{
 
 type NSRInstructionSet struct {
 	// system
-	containerID string
-	filepath    string
+	S3url string
 
 	// resource limits
 	TimeoutSec    time.Duration

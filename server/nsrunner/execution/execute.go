@@ -3,7 +3,7 @@
 * Creates containers via containerd to execute tasks in isolated environment
  */
 
-package main
+package execution
 
 import (
 	"context"

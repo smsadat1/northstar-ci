@@ -94,6 +94,8 @@ type NSRTaskResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	HasTask       bool                   `protobuf:"varint,1,opt,name=has_task,json=hasTask,proto3" json:"has_task,omitempty"`
 	Task          *NSRTask               `protobuf:"bytes,2,opt,name=task,proto3" json:"task,omitempty"`
+	HasDeploy     bool                   `protobuf:"varint,3,opt,name=has_deploy,json=hasDeploy,proto3" json:"has_deploy,omitempty"`
+	Deploy        *NSRDeployInstruction  `protobuf:"bytes,4,opt,name=deploy,proto3" json:"deploy,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -138,6 +140,20 @@ func (x *NSRTaskResponse) GetHasTask() bool {
 func (x *NSRTaskResponse) GetTask() *NSRTask {
 	if x != nil {
 		return x.Task
+	}
+	return nil
+}
+
+func (x *NSRTaskResponse) GetHasDeploy() bool {
+	if x != nil {
+		return x.HasDeploy
+	}
+	return false
+}
+
+func (x *NSRTaskResponse) GetDeploy() *NSRDeployInstruction {
+	if x != nil {
+		return x.Deploy
 	}
 	return nil
 }
@@ -298,6 +314,74 @@ func (x *NSRTask) GetTestEnv() map[string]string {
 	return nil
 }
 
+type NSRDeployInstruction struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	DeployRuntime string                 `protobuf:"bytes,1,opt,name=deploy_runtime,json=deployRuntime,proto3" json:"deploy_runtime,omitempty"`
+	DeployEnv     map[string]string      `protobuf:"bytes,2,rep,name=deploy_env,json=deployEnv,proto3" json:"deploy_env,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Command       string                 `protobuf:"bytes,3,opt,name=command,proto3" json:"command,omitempty"`
+	Steps         []string               `protobuf:"bytes,4,rep,name=steps,proto3" json:"steps,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NSRDeployInstruction) Reset() {
+	*x = NSRDeployInstruction{}
+	mi := &file_comms_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NSRDeployInstruction) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NSRDeployInstruction) ProtoMessage() {}
+
+func (x *NSRDeployInstruction) ProtoReflect() protoreflect.Message {
+	mi := &file_comms_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NSRDeployInstruction.ProtoReflect.Descriptor instead.
+func (*NSRDeployInstruction) Descriptor() ([]byte, []int) {
+	return file_comms_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *NSRDeployInstruction) GetDeployRuntime() string {
+	if x != nil {
+		return x.DeployRuntime
+	}
+	return ""
+}
+
+func (x *NSRDeployInstruction) GetDeployEnv() map[string]string {
+	if x != nil {
+		return x.DeployEnv
+	}
+	return nil
+}
+
+func (x *NSRDeployInstruction) GetCommand() string {
+	if x != nil {
+		return x.Command
+	}
+	return ""
+}
+
+func (x *NSRDeployInstruction) GetSteps() []string {
+	if x != nil {
+		return x.Steps
+	}
+	return nil
+}
+
 type NSRHeartBeat struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// identity
@@ -317,7 +401,7 @@ type NSRHeartBeat struct {
 
 func (x *NSRHeartBeat) Reset() {
 	*x = NSRHeartBeat{}
-	mi := &file_comms_proto_msgTypes[3]
+	mi := &file_comms_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -329,7 +413,7 @@ func (x *NSRHeartBeat) String() string {
 func (*NSRHeartBeat) ProtoMessage() {}
 
 func (x *NSRHeartBeat) ProtoReflect() protoreflect.Message {
-	mi := &file_comms_proto_msgTypes[3]
+	mi := &file_comms_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -342,7 +426,7 @@ func (x *NSRHeartBeat) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NSRHeartBeat.ProtoReflect.Descriptor instead.
 func (*NSRHeartBeat) Descriptor() ([]byte, []int) {
-	return file_comms_proto_rawDescGZIP(), []int{3}
+	return file_comms_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *NSRHeartBeat) GetOwnerId() string {
@@ -410,10 +494,13 @@ const file_comms_proto_rawDesc = "" +
 	"\bowner_id\x18\x01 \x01(\tR\aownerId\x12\x1b\n" +
 	"\trunner_id\x18\x02 \x01(\tR\brunnerId\x12\x1b\n" +
 	"\trunner_ip\x18\x03 \x01(\tR\brunnerIp\x12\x18\n" +
-	"\aversion\x18\x04 \x01(\tR\aversion\"T\n" +
+	"\aversion\x18\x04 \x01(\tR\aversion\"\xac\x01\n" +
 	"\x0fNSRTaskResponse\x12\x19\n" +
 	"\bhas_task\x18\x01 \x01(\bR\ahasTask\x12&\n" +
-	"\x04task\x18\x02 \x01(\v2\x12.northstar.NSRTaskR\x04task\"\x90\x06\n" +
+	"\x04task\x18\x02 \x01(\v2\x12.northstar.NSRTaskR\x04task\x12\x1d\n" +
+	"\n" +
+	"has_deploy\x18\x03 \x01(\bR\thasDeploy\x127\n" +
+	"\x06deploy\x18\x04 \x01(\v2\x1f.northstar.NSRDeployInstructionR\x06deploy\"\x90\x06\n" +
 	"\aNSRTask\x12\x14\n" +
 	"\x05s3url\x18\x04 \x01(\tR\x05s3url\x12\x1f\n" +
 	"\vtimeout_sec\x18\x05 \x01(\rR\n" +
@@ -440,6 +527,15 @@ const file_comms_proto_rawDesc = "" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a:\n" +
 	"\fTestEnvEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xfa\x01\n" +
+	"\x14NSRDeployInstruction\x12%\n" +
+	"\x0edeploy_runtime\x18\x01 \x01(\tR\rdeployRuntime\x12M\n" +
+	"\n" +
+	"deploy_env\x18\x02 \x03(\v2..northstar.NSRDeployInstruction.DeployEnvEntryR\tdeployEnv\x12\x18\n" +
+	"\acommand\x18\x03 \x01(\tR\acommand\x12\x14\n" +
+	"\x05steps\x18\x04 \x03(\tR\x05steps\x1a<\n" +
+	"\x0eDeployEnvEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xa3\x02\n" +
 	"\fNSRHeartBeat\x12\x19\n" +
@@ -469,32 +565,36 @@ func file_comms_proto_rawDescGZIP() []byte {
 	return file_comms_proto_rawDescData
 }
 
-var file_comms_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_comms_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_comms_proto_goTypes = []any{
 	(*RunnerIdentity)(nil),        // 0: northstar.RunnerIdentity
 	(*NSRTaskResponse)(nil),       // 1: northstar.NSRTaskResponse
 	(*NSRTask)(nil),               // 2: northstar.NSRTask
-	(*NSRHeartBeat)(nil),          // 3: northstar.NSRHeartBeat
-	nil,                           // 4: northstar.NSRTask.LintEnvEntry
-	nil,                           // 5: northstar.NSRTask.BuildEnvEntry
-	nil,                           // 6: northstar.NSRTask.TestEnvEntry
-	(*timestamppb.Timestamp)(nil), // 7: google.protobuf.Timestamp
+	(*NSRDeployInstruction)(nil),  // 3: northstar.NSRDeployInstruction
+	(*NSRHeartBeat)(nil),          // 4: northstar.NSRHeartBeat
+	nil,                           // 5: northstar.NSRTask.LintEnvEntry
+	nil,                           // 6: northstar.NSRTask.BuildEnvEntry
+	nil,                           // 7: northstar.NSRTask.TestEnvEntry
+	nil,                           // 8: northstar.NSRDeployInstruction.DeployEnvEntry
+	(*timestamppb.Timestamp)(nil), // 9: google.protobuf.Timestamp
 }
 var file_comms_proto_depIdxs = []int32{
 	2, // 0: northstar.NSRTaskResponse.task:type_name -> northstar.NSRTask
-	4, // 1: northstar.NSRTask.lint_env:type_name -> northstar.NSRTask.LintEnvEntry
-	5, // 2: northstar.NSRTask.build_env:type_name -> northstar.NSRTask.BuildEnvEntry
-	6, // 3: northstar.NSRTask.test_env:type_name -> northstar.NSRTask.TestEnvEntry
-	7, // 4: northstar.NSRHeartBeat.heartbeat_time:type_name -> google.protobuf.Timestamp
-	0, // 5: northstar.TaskQueueService.FetchNextTask:input_type -> northstar.RunnerIdentity
-	3, // 6: northstar.TaskQueueService.SendHeartBeat:input_type -> northstar.NSRHeartBeat
-	1, // 7: northstar.TaskQueueService.FetchNextTask:output_type -> northstar.NSRTaskResponse
-	1, // 8: northstar.TaskQueueService.SendHeartBeat:output_type -> northstar.NSRTaskResponse
-	7, // [7:9] is the sub-list for method output_type
-	5, // [5:7] is the sub-list for method input_type
-	5, // [5:5] is the sub-list for extension type_name
-	5, // [5:5] is the sub-list for extension extendee
-	0, // [0:5] is the sub-list for field type_name
+	3, // 1: northstar.NSRTaskResponse.deploy:type_name -> northstar.NSRDeployInstruction
+	5, // 2: northstar.NSRTask.lint_env:type_name -> northstar.NSRTask.LintEnvEntry
+	6, // 3: northstar.NSRTask.build_env:type_name -> northstar.NSRTask.BuildEnvEntry
+	7, // 4: northstar.NSRTask.test_env:type_name -> northstar.NSRTask.TestEnvEntry
+	8, // 5: northstar.NSRDeployInstruction.deploy_env:type_name -> northstar.NSRDeployInstruction.DeployEnvEntry
+	9, // 6: northstar.NSRHeartBeat.heartbeat_time:type_name -> google.protobuf.Timestamp
+	0, // 7: northstar.TaskQueueService.FetchNextTask:input_type -> northstar.RunnerIdentity
+	4, // 8: northstar.TaskQueueService.SendHeartBeat:input_type -> northstar.NSRHeartBeat
+	1, // 9: northstar.TaskQueueService.FetchNextTask:output_type -> northstar.NSRTaskResponse
+	1, // 10: northstar.TaskQueueService.SendHeartBeat:output_type -> northstar.NSRTaskResponse
+	9, // [9:11] is the sub-list for method output_type
+	7, // [7:9] is the sub-list for method input_type
+	7, // [7:7] is the sub-list for extension type_name
+	7, // [7:7] is the sub-list for extension extendee
+	0, // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_comms_proto_init() }
@@ -508,7 +608,7 @@ func file_comms_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_comms_proto_rawDesc), len(file_comms_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   7,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -29,7 +29,7 @@ export {{$key}} = "{{$value}}"
 {{- end }}
 `
 
-func deploy(instructions DeployInstructionSet) {
+func NSRdeploy(instructions DeployInstructionSet) error {
 
 	generateDeploysh(instructions, "./deploy.sh")
 	cmd := exec.Command("bash", "./deploy.sh")
@@ -40,8 +40,10 @@ func deploy(instructions DeployInstructionSet) {
 	err := cmd.Run()
 	if err != nil {
 		fmt.Printf("Error executing script: %s\n", err)
-		return
+		return err
 	}
+
+	return nil
 }
 
 func generateDeploysh(instructions DeployInstructionSet, outputPath string) error {
