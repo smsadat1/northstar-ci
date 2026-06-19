@@ -24,6 +24,8 @@ message RunnerIdentity {
 message NSRTaskResponse {
     bool has_task = 1;
     NSRTask task = 2;
+    bool has_deploy = 3;
+    NSRDeployInstruction deploy = 4;
 }
 
 message NSRTask {
@@ -46,6 +48,13 @@ message NSRTask {
     string test_runtime = 16;
     string test_command = 17;
     map<string, string> test_env = 18;
+}
+
+message NSRDeployInstruction {
+    string deploy_runtime = 1;
+    map<string, string> deploy_env = 2;
+    string command = 3;
+    repeated string steps = 4;
 }
 
 message NSRHeartBeat {
