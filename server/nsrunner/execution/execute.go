@@ -11,9 +11,11 @@ import (
 
 	containerd "github.com/containerd/containerd/v2/client"
 	"github.com/containerd/containerd/v2/pkg/namespaces"
+
+	utils "northstar/utils"
 )
 
-func NSRExecute(rules NSContainerRules) error {
+func NSRExecute(rules utils.NSContainerRules) error {
 	// init client and setup namespace
 	client, err := containerd.New("/run/containerd/containerd.sock")
 	if err != nil {

@@ -2,34 +2,37 @@
 
 package execution
 
-import "log"
+import (
+	"log"
+
+	utils "northstar/utils"
+)
 
 // A taskline contains entire lifecycle for an instruction set (Lint -> Build -> Stage)
-func taskline(nsris NSRInstructionSet) {
+func taskline(nsris utils.NSRInstructionSet) {
 
 	// lint stage (optional) | Check whether this stage is actually defined
 	if nsris.LintRuntime != "" && nsris.LintCommand != "" {
-		rules := NSContainerRules{
+		rules := utils.NSContainerRules{
 			// system
-			containerID: nsris.containerID,
-			image:       imagemap[nsris.LintRuntime],
-			command:     nsris.LintCommand,
-			stage:       "LINT",
+			Image:   imagemap[nsris.LintRuntime],
+			Command: nsris.LintCommand,
+			Stage:   "LINT",
 
 			// environment
-			env:               nsris.BuildEnv,
-			hostSrcpath:       nsris.filepath,
-			containerDestPath: "/mnt",
+			Env:               nsris.BuildEnv,
+			HostSrcpath:       nsris.Filepath,
+			ContainerDestPath: "/mnt",
 
 			// rules
-			memoryLimitMB:  nsris.MemoryLimitMB,
-			pidLimit:       64,
-			cpuShares:      nsris.CpuShares,
-			cpuCores:       float64(nsris.CpuShares),
-			noNewPrivilege: true,
-			readOnlyRootfs: false,
-			allowNetwork:   true,
-			timeoutsec:     uint32(nsris.TimeoutSec),
+			MemoryLimitMB:  nsris.MemoryLimitMB,
+			PidLimit:       64,
+			CpuShares:      nsris.CpuShares,
+			CpuCores:       float64(nsris.CpuShares),
+			NoNewPrivilege: true,
+			ReadOnlyRootfs: false,
+			AllowNetwork:   true,
+			Timeoutsec:     uint32(nsris.TimeoutSec),
 		}
 
 		if err := NSRExecute(rules); err != nil {
@@ -44,27 +47,26 @@ func taskline(nsris NSRInstructionSet) {
 		return
 	}
 
-	rules := NSContainerRules{
+	rules := utils.NSContainerRules{
 		// system
-		containerID: nsris.containerID,
-		image:       imagemap[nsris.BuildRuntime],
-		command:     nsris.BuildCommand,
-		stage:       "BUILD",
+		Image:   imagemap[nsris.BuildRuntime],
+		Command: nsris.BuildCommand,
+		Stage:   "BUILD",
 
 		// environment
-		env:               nsris.BuildEnv,
-		hostSrcpath:       nsris.filepath,
-		containerDestPath: "/mnt",
+		Env:               nsris.BuildEnv,
+		HostSrcpath:       nsris.Filepath,
+		ContainerDestPath: "/mnt",
 
 		// rules
-		memoryLimitMB:  nsris.MemoryLimitMB,
-		pidLimit:       64,
-		cpuShares:      nsris.CpuShares,
-		cpuCores:       float64(nsris.CpuShares),
-		noNewPrivilege: true,
-		readOnlyRootfs: false,
-		allowNetwork:   true,
-		timeoutsec:     uint32(nsris.TimeoutSec),
+		MemoryLimitMB:  nsris.MemoryLimitMB,
+		PidLimit:       64,
+		CpuShares:      nsris.CpuShares,
+		CpuCores:       float64(nsris.CpuShares),
+		NoNewPrivilege: true,
+		ReadOnlyRootfs: false,
+		AllowNetwork:   true,
+		Timeoutsec:     uint32(nsris.TimeoutSec),
 	}
 
 	if err := NSRExecute(rules); err != nil {
@@ -78,28 +80,27 @@ func taskline(nsris NSRInstructionSet) {
 		return
 	}
 
-	rules = NSContainerRules{
+	rules = utils.NSContainerRules{
 		// system
-		containerID: nsris.containerID,
-		image:       imagemap[nsris.TestRuntime],
-		command:     nsris.TestCommand,
-		stage:       "TEST",
+		Image:   imagemap[nsris.TestRuntime],
+		Command: nsris.TestCommand,
+		Stage:   "TEST",
 
 		// environment
 		// environment
-		env:               nsris.BuildEnv,
-		hostSrcpath:       nsris.filepath,
-		containerDestPath: "/mnt",
+		Env:               nsris.BuildEnv,
+		HostSrcpath:       nsris.Filepath,
+		ContainerDestPath: "/mnt",
 
 		// rules
-		memoryLimitMB:  nsris.MemoryLimitMB,
-		pidLimit:       64,
-		cpuShares:      nsris.CpuShares,
-		cpuCores:       float64(nsris.CpuShares),
-		noNewPrivilege: true,
-		readOnlyRootfs: false,
-		allowNetwork:   true,
-		timeoutsec:     uint32(nsris.TimeoutSec),
+		MemoryLimitMB:  nsris.MemoryLimitMB,
+		PidLimit:       64,
+		CpuShares:      nsris.CpuShares,
+		CpuCores:       float64(nsris.CpuShares),
+		NoNewPrivilege: true,
+		ReadOnlyRootfs: false,
+		AllowNetwork:   true,
+		Timeoutsec:     uint32(nsris.TimeoutSec),
 	}
 
 	if err := NSRExecute(rules); err != nil {
@@ -110,7 +111,7 @@ func taskline(nsris NSRInstructionSet) {
 	nsrLogger("All stages done")
 }
 
-func NSRExec(nsris NSRInstructionSet) error {
+func NSRExec(nsris utils.NSRInstructionSet) error {
 	// disable default timestamp
 	log.SetFlags(0)
 

@@ -8,6 +8,8 @@ import (
 	"html/template"
 	"os"
 	"os/exec"
+
+	utils "northstar/utils"
 )
 
 const bashTemplates = `
@@ -29,7 +31,7 @@ export {{$key}} = "{{$value}}"
 {{- end }}
 `
 
-func NSRdeploy(instructions DeployInstructionSet) error {
+func NSRdeploy(instructions utils.DeployInstructionSet) error {
 
 	generateDeploysh(instructions, "./deploy.sh")
 	cmd := exec.Command("bash", "./deploy.sh")
@@ -46,7 +48,7 @@ func NSRdeploy(instructions DeployInstructionSet) error {
 	return nil
 }
 
-func generateDeploysh(instructions DeployInstructionSet, outputPath string) error {
+func generateDeploysh(instructions utils.DeployInstructionSet, outputPath string) error {
 	tmpl, err := template.New("deployScript").Parse(bashTemplates)
 	if err != nil {
 		return err

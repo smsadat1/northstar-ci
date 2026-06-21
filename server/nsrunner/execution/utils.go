@@ -12,6 +12,8 @@ import (
 	"github.com/containerd/containerd/v2/pkg/oci"
 	"github.com/containerd/errdefs"
 	"github.com/opencontainers/runtime-spec/specs-go"
+
+	utils "northstar/utils"
 )
 
 var imagemap = map[string]string{
@@ -41,54 +43,6 @@ var imagemap = map[string]string{
 	"rust-1.96": "docker.io/library/rust:1.96-slim",
 	"rust-1.94": "docker.io/library/rust:1.94-slim",
 	"rust-1.92": "docker.io/library/rust:1.92-slim",
-}
-
-type NSRInstructionSet struct {
-	// system
-	S3url string
-
-	// resource limits
-	TimeoutSec    time.Duration
-	MemoryLimitMB uint64
-	MaxStdoutKB   uint64
-	CpuShares     uint64
-	DiskLimitMB   uint64
-
-	// stages
-	LintRuntime string
-	LintCommand string
-	LintEnv     map[string]string
-
-	BuildRuntime string
-	BuildCommand string
-	BuildEnv     map[string]string
-
-	TestRuntime string
-	TestCommand string
-	TestEnv     map[string]string
-}
-
-type NSContainerRules struct {
-	// system
-	containerID string
-	image       string
-	command     string
-	stage       string
-
-	// environment
-	hostSrcpath       string
-	containerDestPath string
-	env               map[string]string
-
-	// rules
-	memoryLimitMB  uint64
-	pidLimit       int64
-	cpuShares      uint64
-	cpuCores       float64
-	noNewPrivilege bool
-	readOnlyRootfs bool
-	allowNetwork   bool
-	timeoutsec     uint32
 }
 
 // checks first whether requested image already exists
@@ -131,13 +85,13 @@ func stageCapabilities(stage string) []string {
 func buildSpecOpts(
 	image containerd.Image,
 	command string,
-	rules NSContainerRules,
+	rules utils.NSContainerRules,
 ) []oci.SpecOpts {
 
-	memoryBytes := uint64(rules.memoryLimitMB * 1024 * 1024)
-	quota := int64(rules.cpuCores * 100000)
+	memoryBytes := uint64(rules.MemoryLimitMB * 1024 * 1024)
+	quota := int64(rules.CpuCores * 100000)
 	period := uint64(100000)
-	ociEnvs := parseToEnv(rules.env)
+	ociEnvs := parseToEnv(rules.Env)
 
 	opts := []oci.SpecOpts{
 		// image
@@ -145,8 +99,8 @@ func buildSpecOpts(
 
 		// resource limits
 		oci.WithMemoryLimit(memoryBytes),
-		oci.WithPidsLimit(rules.pidLimit),
-		oci.WithCPUShares(rules.cpuShares),
+		oci.WithPidsLimit(rules.PidLimit),
+		oci.WithCPUShares(rules.CpuShares),
 		oci.WithCPUCFS(quota, period),
 
 		// env
@@ -154,12 +108,12 @@ func buildSpecOpts(
 	}
 
 	// file mount
-	if rules.hostSrcpath != "" && rules.containerDestPath != "" {
+	if rules.HostSrcpath != "" && rules.ContainerDestPath != "" {
 		opts = append(opts, oci.WithMounts([]specs.Mount{
 			{
 				Type:        "bind",
-				Source:      rules.hostSrcpath,
-				Destination: rules.containerDestPath,
+				Source:      rules.HostSrcpath,
+				Destination: rules.ContainerDestPath,
 				/* "ro" makes it read-only for security, "rw" makes writable
 				* "rbind" ensures sub-mounts are included, "nodev"/"nosuid" are standard sandbox protections
 				 */
@@ -169,10 +123,10 @@ func buildSpecOpts(
 	}
 
 	opts = []oci.SpecOpts{
-		oci.WithCapabilities(stageCapabilities(rules.stage)),
+		oci.WithCapabilities(stageCapabilities(rules.Stage)),
 	}
 
-	if rules.readOnlyRootfs {
+	if rules.ReadOnlyRootfs {
 		opts = append(opts, oci.WithRootFSReadonly())
 	}
 
@@ -188,7 +142,7 @@ func buildSpecOpts(
 func enforceContainerLimits(
 	ctx context.Context,
 	client *containerd.Client,
-	rules NSContainerRules,
+	rules utils.NSContainerRules,
 	image containerd.Image,
 ) (containerd.Container, string, error) {
 
@@ -196,15 +150,15 @@ func enforceContainerLimits(
 		return nil, "", fmt.Errorf("cannot enforce limits: provided image object is nil")
 	}
 
-	fmt.Printf("Command: %v\n", rules.command)
+	fmt.Printf("Command: %v\n", rules.Command)
 
-	snapshotID := rules.containerID + "-snapshot"
+	snapshotID := rules.ContainerID + "-snapshot"
 
-	opts := buildSpecOpts(image, rules.command, rules)
+	opts := buildSpecOpts(image, rules.Command, rules)
 
 	container, err := client.NewContainer(
 		ctx,
-		rules.containerID,
+		rules.ContainerID,
 		containerd.WithNewSnapshot(snapshotID, image),
 		containerd.WithNewSpec(opts...),
 		// containerd.WithRuntime("runsc", nil), // gVisor interception

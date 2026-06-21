@@ -1,6 +1,6 @@
 package utils
 
-type CPUSample struct {
+type NSRCPUSample struct {
 	User, Nice, System, Idle, Iowait, Irq, Softirq, Steal uint64
 }
 

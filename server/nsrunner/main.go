@@ -13,6 +13,7 @@ import (
 	exc "northstar/execution"
 	hb "northstar/monitor"
 	pb "northstar/pb"
+	utils "northstar/utils"
 )
 
 func main() {
@@ -49,8 +50,8 @@ func main() {
 			log.Printf("[Worker Pipeline] Task detected. S3 Target: %s", taskResponse.Task.S3Url)
 
 			// pass execution instruction downstream
-			nsrcontainerrules := exc.NSRInstructionSet{
-				S3url: taskResponse.Task.S3Url,
+			nsrcontainerrules := utils.NSRInstructionSet{
+				Filepath: taskResponse.Task.S3Url,
 
 				TimeoutSec:    time.Duration(taskResponse.Task.TimeoutSec),
 				MemoryLimitMB: taskResponse.Task.MemoryLimitMb,
@@ -80,7 +81,7 @@ func main() {
 			log.Println("[Worker Pipeline] Deployment instruction detected")
 
 			// pass deployment definition downstream
-			nsrdeploydefs := dep.DeployInstructionSet{
+			nsrdeploydefs := utils.DeployInstructionSet{
 				DeployRuntime: taskResponse.Deploy.DeployRuntime,
 				DeployEnv:     taskResponse.Deploy.DeployEnv,
 				Command:       taskResponse.Deploy.Command,

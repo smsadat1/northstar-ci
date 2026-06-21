@@ -12,15 +12,17 @@ import (
 	containerd "github.com/containerd/containerd/v2/client"
 	"github.com/containerd/containerd/v2/pkg/cio"
 	"github.com/containerd/errdefs"
+
+	utils "northstar/utils"
 )
 
 func spawnContainer(
 	ctx context.Context,
 	client *containerd.Client,
-	rules NSContainerRules,
+	rules utils.NSContainerRules,
 ) (containerd.Container, error) {
 
-	image := pullContainerImage(rules.image, client, ctx)
+	image := pullContainerImage(rules.Image, client, ctx)
 	container, snapshotID, err := enforceContainerLimits(ctx, client, rules, image)
 
 	if err != nil {
@@ -36,7 +38,7 @@ func spawnContainer(
 func createAndManageTask(
 	container containerd.Container,
 	ctx context.Context,
-	rules NSContainerRules,
+	rules utils.NSContainerRules,
 ) error {
 
 	// synchronous unix pipe for read & write
@@ -57,7 +59,7 @@ func createAndManageTask(
 	netNS := fmt.Sprintf("/proc/%d/ns/net", task.Pid())
 
 	// network
-	if rules.allowNetwork {
+	if rules.AllowNetwork {
 		network, tmpNetCfgDir, err := setupNetwork()
 		if err != nil {
 			nsrLogger("Network setup failed during container initialization")
@@ -90,7 +92,7 @@ func createAndManageTask(
 	}
 	nsrLogger("Task started successfully")
 
-	timeoutDuration := time.Duration(rules.timeoutsec) * time.Second
+	timeoutDuration := time.Duration(rules.Timeoutsec) * time.Second
 	ctxTimeout, cancel := context.WithTimeout(ctx, timeoutDuration)
 	defer cancel()
 
@@ -105,7 +107,7 @@ func createAndManageTask(
 
 	case <-ctxTimeout.Done():
 		// force kill , just in case
-		log.Printf("[nsrunner] Task exceeded set timeout %v\nStopping task...\n", rules.timeoutsec)
+		log.Printf("[nsrunner] Task exceeded set timeout %v\nStopping task...\n", rules.Timeoutsec)
 		if err := task.Kill(ctx, syscall.SIGTERM); err != nil {
 			if errdefs.IsNotFound(err) {
 				nsrLogger("Task finished right as timeout hit; ignoring 'not found' error.")

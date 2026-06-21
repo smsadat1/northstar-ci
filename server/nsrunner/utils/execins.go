@@ -4,8 +4,8 @@ import "time"
 
 type NSRInstructionSet struct {
 	// system
-	containerID string
-	filepath    string
+	ContainerID string
+	Filepath    string
 
 	// resource limits
 	TimeoutSec    time.Duration
@@ -30,23 +30,23 @@ type NSRInstructionSet struct {
 
 type NSContainerRules struct {
 	// system
-	containerID string
-	image       string
-	command     string
-	stage       string
+	ContainerID string
+	Image       string
+	Command     string
+	Stage       string
 
 	// environment
-	hostSrcpath       string
-	containerDestPath string
-	env               map[string]string
+	HostSrcpath       string
+	ContainerDestPath string
+	Env               map[string]string
 
 	// rules
-	memoryLimitMB  uint64
-	pidLimit       int64
-	cpuShares      uint64
-	cpuCores       float64
-	noNewPrivilege bool
-	readOnlyRootfs bool
-	allowNetwork   bool
-	timeoutsec     uint32
+	MemoryLimitMB  uint64
+	PidLimit       int64
+	CpuShares      uint64
+	CpuCores       float64
+	NoNewPrivilege bool
+	ReadOnlyRootfs bool
+	AllowNetwork   bool
+	Timeoutsec     uint32
 }
